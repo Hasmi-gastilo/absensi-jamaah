@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Absensi Jama'ah SMK Negeri 1 Sangasanga</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <h5>Absensi SMK N 1 Sangasanga</h5>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item active">
+                <a href="dashboard.html">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="students.html">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Data Siswa</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="import.html">
+                    <i class="bi bi-file-earmark-excel-fill"></i>
+                    <span>Import Excel</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="scan-qr.html">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Scan QR</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="attendance.html">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                    <span>Data Absensi</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="reports.html">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>Laporan</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="settings.html">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Setting</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="admin.html">
+                    <i class="bi bi-person-gear"></i>
+                    <span>Admin</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="btn-toggle-sidebar" id="toggleSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="header-title">
+                    <h4 id="schoolName">Sekolah Menengah Pertama</h4>
+                    <p class="text-muted mb-0" id="currentDate">Loading...</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-details">
+                        <h6 class="mb-0" id="adminName">Admin</h6>
+                        <small class="text-muted" id="adminRole">Super Admin</small>
+                    </div>
+                    <div class="user-avatar" id="adminAvatar">
+                        <img src="assets/img/default-avatar.png" alt="Admin" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-placeholder">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="banner-content">
+                <div class="banner-text">
+                    <p class="banner-date" id="bannerDate">Loading...</p>
+                    <h2 class="banner-title">Selamat Datang Kembali, <span id="welcomeName">Admin</span>!</h2>
+                    <p class="banner-subtitle">Selalu pantau kehadiran jamaah secara real-time</p>
+                </div>
+                <div class="banner-illustration">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-primary">
+                    <div class="stat-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalStudents">0</h3>
+                        <p>Total Siswa</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-success">
+                    <div class="stat-icon">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalPresent">0</h3>
+                        <p>Hadir Hari Ini</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-warning">
+                    <div class="stat-icon">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalLate">0</h3>
+                        <p>Terlambat</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card stat-card-danger">
+                    <div class="stat-icon">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalAbsent">0</h3>
+                        <p>Belum Hadir</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Percentage -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card premium-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-4">Persentase Kehadiran Hari Ini</h5>
+                        <div class="percentage-circle">
+                            <svg width="200" height="200">
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="15"/>
+                                <circle id="percentageCircle" cx="100" cy="100" r="90" fill="none" stroke="url(#gradient)" stroke-width="15" stroke-dasharray="565.48" stroke-dashoffset="565.48" transform="rotate(-90 100 100)" style="transition: stroke-dashoffset 1s ease;"/>
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="percentage-text">
+                                <h2 id="attendancePercentage">0%</h2>
+                                <p>Kehadiran</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="card premium-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Grafik Kehadiran Harian</h5>
+                        <canvas id="dailyChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card premium-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Grafik Kehadiran Mingguan</h5>
+                        <canvas id="weeklyChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card premium-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Grafik Kehadiran Bulanan</h5>
+                        <canvas id="monthlyChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card premium-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Aktivitas Absensi Terbaru</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Waktu</th>
+                                        <th>NISN</th>
+                                        <th>Nama</th>
+                                        <th>Kelas</th>
+                                        <th>Jenis Absensi</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivityTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="assets/js/firebase.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

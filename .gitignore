@@ -1,0 +1,20 @@
+# Firebase Config (jangan dicommit ke repository)
+assets/js/firebase-config-private.js
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dependencies (jika menggunakan npm)
+node_modules/
+
+# Build files
+dist/
+build/

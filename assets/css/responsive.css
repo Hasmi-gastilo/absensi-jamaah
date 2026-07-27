@@ -1,0 +1,92 @@
+/* ========================================
+   Responsive Design - Mobile & Tablet
+======================================== */
+
+/* Tablet */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 250px;
+    }
+    
+    .main-content {
+        margin-left: 250px;
+    }
+    
+    .stat-card {
+        margin-bottom: 15px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+    
+    .top-header {
+        padding: 15px 20px;
+        flex-wrap: wrap;
+    }
+    
+    .header-title h4 {
+        font-size: 18px;
+    }
+    
+    .user-details {
+        display: none;
+    }
+    
+    .welcome-banner {
+        padding: 25px;
+    }
+    
+    .banner-title {
+        font-size: 20px;
+    }
+    
+    .banner-subtitle {
+        font-size: 14px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-details h3 {
+        font-size: 24px;
+    }
+    
+    .table-responsive {
+        font-size: 13px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 576px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
