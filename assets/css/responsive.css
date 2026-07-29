@@ -72,6 +72,56 @@
     .modal-body {
         padding: 20px;
     }
+    
+    /* Responsive Pagination */
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .pagination .page-item .page-link {
+        padding: 6px 10px;
+        font-size: 13px;
+        min-width: 36px;
+    }
+    
+    /* Hide page text on mobile, show icon */
+    .pagination .page-item:first-child .page-link::before {
+        content: '‹';
+        font-size: 18px;
+    }
+    
+    .pagination .page-item:last-child .page-link::before {
+        content: '›';
+        font-size: 18px;
+    }
+    
+    .pagination .page-item:first-child .page-link,
+    .pagination .page-item:last-child .page-link {
+        font-size: 0;
+        min-width: 36px;
+        padding: 6px 8px;
+    }
+    
+    .pagination .page-item:first-child .page-link::before,
+    .pagination .page-item:last-child .page-link::before {
+        font-size: 18px;
+    }
+    
+    /* Limit visible page numbers on mobile */
+    .pagination .page-item:not(:first-child):not(:last-child):not(.active):not(.disabled) {
+        display: none;
+    }
+    
+    .pagination .page-item.active {
+        display: inline-block;
+    }
+    
+    .pagination .page-item.active ~ .page-item:nth-child(-n+2):not(:last-child),
+    .pagination .page-item.active ~ .page-item:nth-last-child(-n+2):not(:first-child) {
+        display: inline-block;
+    }
 }
 
 /* Small Mobile */
@@ -88,5 +138,26 @@
     .btn-group .btn {
         width: 100%;
         margin-bottom: 10px;
+    }
+    
+    /* Extra compact pagination for small screens */
+    .pagination .page-item .page-link {
+        padding: 6px 10px;
+        font-size: 13px;
+        min-width: 36px;
+    }
+    
+    .pagination .page-item:first-child .page-link,
+    .pagination .page-item:last-child .page-link {
+        padding: 6px 12px;
+    }
+    
+    /* Show only active page and arrows */
+    .pagination .page-item:not(:first-child):not(:last-child):not(.active) {
+        display: none !important;
+    }
+    
+    .pagination .page-item.disabled {
+        display: inline-block !important;
     }
 }
