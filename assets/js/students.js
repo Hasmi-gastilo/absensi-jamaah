@@ -58,7 +58,10 @@ function parseKelasForFilter(kelas) {
         jurusanSingkat = 'TKR';
     } else if (jurusanFull.includes('TITL') || jurusanFull.includes('TEKNIK INSTALASI TENAGA LISTRIK')) {
         jurusanSingkat = 'TITL';
-    } else if (jurusanFull.includes('TKP') || jurusanFull.includes('TEKNIK KONSTRUKSI PERMESINAN')) {
+    } else if (jurusanFull.includes('TKP') || 
+               jurusanFull.includes('TEKNIK KONSTRUKSI PERMESINAN') ||
+               jurusanFull.includes('TEKNIK KONSTRUKSI DAN PERUMAHAN') ||
+               jurusanFull.includes('KONSTRUKSI DAN PERUMAHAN')) {
         jurusanSingkat = 'TKP';
     } else if (jurusanFull.includes('ATPH') || 
                jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA') ||
