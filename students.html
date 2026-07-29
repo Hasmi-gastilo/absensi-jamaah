@@ -65,9 +65,14 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Daftar Siswa</h5>
-                        <button class="btn btn-primary" id="btnAddStudent">
-                            <i class="bi bi-plus-circle"></i> Tambah Siswa
-                        </button>
+                        <div class="gap-2">
+                            <button class="btn btn-primary" id="btnAddStudent">
+                                <i class="bi bi-plus-circle"></i> Tambah Siswa
+                            </button>
+                            <button class="btn btn-info" id="btnPrintQR">
+                                <i class="bi bi-printer"></i> Cetak QR
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="row mb-3">
@@ -83,11 +88,11 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>NISN</th>
+                                    <th style="width: 5%;">No</th>
                                     <th>Nama</th>
-                                    <th>Jenis Kelamin</th>
-                                    <th>Kelas</th>
-                                    <th>No HP</th>
+                                    <th>NISN</th>
+                                    <th>Tingkat</th>
+                                    <th>Jurusan</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -99,6 +104,66 @@
                     </div>
 
                     <nav id="pagination"></nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cetak QR -->
+    <div class="modal fade" id="printQRModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cetak QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="printQRForm">
+                        <div class="mb-3">
+                            <label class="form-label">Pilihan Cetak:</label>
+                            <div>
+                                <input type="radio" id="printAll" name="printType" value="all" checked>
+                                <label for="printAll" style="display: inline; margin-right: 30px;">Cetak Semua Siswa</label>
+                                <input type="radio" id="printFilter" name="printType" value="filter">
+                                <label for="printFilter" style="display: inline;">Cetak Berdasarkan Tingkat & Jurusan</label>
+                            </div>
+                        </div>
+                        
+                        <div id="filterOptions" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Tingkat *</label>
+                                <select class="form-select" id="filterTingkat">
+                                    <option value="">Pilih Tingkat</option>
+                                    <option value="X">X</option>
+                                    <option value="XI">XI</option>
+                                    <option value="XII">XII</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Jurusan *</label>
+                                <select class="form-select" id="filterJurusan">
+                                    <option value="">Pilih Jurusan</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Format:</label>
+                            <div>
+                                <input type="radio" id="formatPrint" name="format" value="print" checked>
+                                <label for="formatPrint" style="display: inline; margin-right: 30px;">Print Langsung</label>
+                                <input type="radio" id="formatPDF" name="format" value="pdf">
+                                <label for="formatPDF" style="display: inline;">Download PDF</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnCetakQR">
+                        <i class="bi bi-printer"></i> Cetak
+                    </button>
                 </div>
             </div>
         </div>

@@ -10,12 +10,21 @@ const itemsPerPage = 10;
 let allStudents = [];
 let filteredStudents = [];
 
+// Jurusan options
+const JURUSAN_OPTIONS = {
+    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
+    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
+    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H']
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadStudents();
     initSearchFilter();
     initAddButton();
     initForm();
+    initPrintQRButton();
+    initPrintQRModal();
 });
 
 /**
@@ -56,7 +65,7 @@ function displayStudents() {
     tbody.innerHTML = '';
     
     if (filteredStudents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Tidak ada data siswa</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data siswa</td></tr>';
         return;
     }
     
@@ -65,25 +74,30 @@ function displayStudents() {
     const endIndex = startIndex + itemsPerPage;
     const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
     
-    paginatedStudents.forEach((student) => {
+    paginatedStudents.forEach((student, index) => {
+        const { tingkat, jurusan } = parseKelas(student.kelas);
+        const noUrut = startIndex + index + 1;
+        
         const row = `
             <tr>
-                <td>${student.nisn}</td>
+                <td>${noUrut}</td>
                 <td>${student.nama}</td>
-                <td>${student.jenisKelamin}</td>
-                <td>${student.kelas || '-'}</td>
-                <td>${student.noHp || '-'}</td>
+                <td>${student.nisn}</td>
+                <td>${tingkat}</td>
+                <td>${jurusan}</td>
                 <td><span class="badge ${student.status === 'Aktif' ? 'badge-success' : 'badge-danger'}">${student.status}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="showQR('${student.id}', '${student.nisn}', '${student.nama.replace(/'/g, "\\'")}', '${student.kelas || '-'}')">
-                        <i class="bi bi-qr-code"></i>
-                    </button>
-                    <button class="btn btn-sm btn-primary" onclick="editStudent('${student.id}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteStudent('${student.id}', '${student.nama}')">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-success" onclick="showQR('${student.id}', '${student.nisn}', '${student.nama.replace(/'/g, "\\'")}', '${tingkat}', '${jurusan}')" title="Generate QR">
+                            <i class="bi bi-qr-code"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="editStudent('${student.id}')" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteStudent('${student.id}', '${student.nama}')" title="Hapus">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -91,6 +105,25 @@ function displayStudents() {
     });
     
     renderPagination();
+}
+
+/**
+ * Parse kelas menjadi tingkat dan jurusan
+ */
+function parseKelas(kelas) {
+    if (!kelas || kelas === '-') {
+        return { tingkat: '-', jurusan: '-' };
+    }
+    
+    // Format: "XI TKR A" atau "X TITL B"
+    const parts = kelas.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        const tingkat = parts[0];
+        const jurusan = parts.slice(1).join(' ');
+        return { tingkat, jurusan };
+    }
+    
+    return { tingkat: kelas, jurusan: '-' };
 }
 
 /**
@@ -336,14 +369,14 @@ let currentStudentData = {};
 /**
  * Show QR Code for student
  */
-function showQR(id, nisn, nama, kelas) {
+function showQR(id, nisn, nama, tingkat, jurusan) {
     // Store student data
-    currentStudentData = { id, nisn, nama, kelas };
+    currentStudentData = { id, nisn, nama, tingkat, jurusan };
     
     // Set student info
     document.getElementById('qrStudentName').textContent = nama;
     document.getElementById('qrStudentNISN').textContent = nisn;
-    document.getElementById('qrStudentClass').textContent = kelas;
+    document.getElementById('qrStudentClass').textContent = `${tingkat} ${jurusan}`;
     
     // Clear previous QR code
     const container = document.getElementById('qrcodeContainer');
@@ -465,4 +498,247 @@ function printQR() {
     `);
     
     printWindow.document.close();
+}
+
+/**
+ * Initialize Cetak QR button
+ */
+function initPrintQRButton() {
+    const btnPrintQR = document.getElementById('btnPrintQR');
+    if (btnPrintQR) {
+        btnPrintQR.addEventListener('click', () => {
+            const modal = new bootstrap.Modal(document.getElementById('printQRModal'));
+            modal.show();
+        });
+    }
+}
+
+/**
+ * Initialize Cetak QR modal
+ */
+function initPrintQRModal() {
+    // Handle print type change
+    document.querySelectorAll('input[name="printType"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const filterOptions = document.getElementById('filterOptions');
+            if (e.target.value === 'filter') {
+                filterOptions.style.display = 'block';
+            } else {
+                filterOptions.style.display = 'none';
+            }
+        });
+    });
+    
+    // Handle tingkat change
+    document.getElementById('filterTingkat').addEventListener('change', (e) => {
+        const tingkat = e.target.value;
+        const jurusanSelect = document.getElementById('filterJurusan');
+        jurusanSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
+        
+        if (tingkat && JURUSAN_OPTIONS[tingkat]) {
+            JURUSAN_OPTIONS[tingkat].forEach(jurusan => {
+                const option = document.createElement('option');
+                option.value = jurusan;
+                option.textContent = jurusan;
+                jurusanSelect.appendChild(option);
+            });
+        }
+    });
+    
+    // Handle cetak button
+    document.getElementById('btnCetakQR').addEventListener('click', () => {
+        const printType = document.querySelector('input[name="printType"]:checked').value;
+        const format = document.querySelector('input[name="format"]:checked').value;
+        
+        if (printType === 'filter') {
+            const tingkat = document.getElementById('filterTingkat').value;
+            const jurusan = document.getElementById('filterJurusan').value;
+            
+            if (!tingkat || !jurusan) {
+                showError('Pilih Tingkat dan Jurusan');
+                return;
+            }
+            
+            generateQRPrint(tingkat, jurusan, format);
+        } else {
+            generateQRPrint(null, null, format);
+        }
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('printQRModal')).hide();
+    });
+}
+
+/**
+ * Generate QR print page
+ */
+function generateQRPrint(tingkat, jurusan, format) {
+    showLoading('Membuat halaman cetak...');
+    
+    // Filter students
+    let studentsForPrint = allStudents;
+    
+    if (tingkat && jurusan) {
+        const kelasFilter = `${tingkat} ${jurusan}`;
+        studentsForPrint = allStudents.filter(s => s.kelas === kelasFilter);
+    }
+    
+    if (studentsForPrint.length === 0) {
+        Swal.close();
+        showError('Tidak ada data siswa untuk dicetak');
+        return;
+    }
+    
+    // Generate QR codes
+    generateQRCodes(studentsForPrint, format, tingkat, jurusan);
+}
+
+/**
+ * Generate QR codes for printing
+ */
+async function generateQRCodes(students, format, tingkat, jurusan) {
+    try {
+        const printWindow = window.open('', '_blank');
+        
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Cetak QR Code</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                        background: white;
+                    }
+                    .page {
+                        page-break-after: always;
+                        margin-bottom: 40px;
+                    }
+                    .qr-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 20px;
+                        page-break-inside: avoid;
+                    }
+                    .qr-item {
+                        border: 1px solid #ddd;
+                        padding: 15px;
+                        text-align: center;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                    .qr-item img {
+                        max-width: 100%;
+                        margin: 10px 0;
+                    }
+                    .qr-item h5 {
+                        font-size: 12px;
+                        margin: 8px 0 5px 0;
+                        font-weight: bold;
+                    }
+                    .qr-item p {
+                        font-size: 10px;
+                        margin: 3px 0;
+                        color: #555;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        page-break-inside: avoid;
+                        border-bottom: 2px solid #7C3AED;
+                        padding-bottom: 15px;
+                    }
+                    .header h2 {
+                        color: #7C3AED;
+                        margin-bottom: 5px;
+                    }
+                    .header p {
+                        color: #666;
+                        font-size: 12px;
+                    }
+                    @media print {
+                        body {
+                            padding: 0;
+                        }
+                        .page {
+                            margin-bottom: 0;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>QR Code Siswa</h2>
+                    <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
+                    ${tingkat ? `<p>Tingkat ${tingkat} - ${jurusan}</p>` : ''}
+                </div>
+        `;
+        
+        // Generate QR codes
+        let itemCount = 0;
+        htmlContent += '<div class="qr-grid">';
+        
+        for (const student of students) {
+            const { tingkat: t, jurusan: j } = parseKelas(student.kelas);
+            
+            // Create canvas for QR
+            const canvas = document.createElement('canvas');
+            new QRCode(canvas, {
+                text: student.nisn,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            const qrDataUrl = canvas.toDataURL();
+            
+            htmlContent += `
+                <div class="qr-item">
+                    <img src="${qrDataUrl}" alt="QR Code">
+                    <h5>${student.nama}</h5>
+                    <p>NISN: ${student.nisn}</p>
+                    <p>Tingkat: ${t}</p>
+                    <p>Jurusan: ${j}</p>
+                </div>
+            `;
+            
+            itemCount++;
+            
+            // Page break every 20 items (4 kolom x 5 baris)
+            if (itemCount % 20 === 0 && itemCount < students.length) {
+                htmlContent += '</div><div class="page"><div class="qr-grid">';
+            }
+        }
+        
+        htmlContent += '</div></div></body></html>';
+        
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        Swal.close();
+        
+        // Wait for content to load
+        setTimeout(() => {
+            if (format === 'print') {
+                printWindow.print();
+            } else {
+                // For PDF, user dapat gunakan Print to PDF dari browser
+                showSuccess('Halaman cetak sudah siap. Gunakan Ctrl+P untuk print atau save as PDF.');
+            }
+        }, 500);
+        
+    } catch (error) {
+        Swal.close();
+        console.error('Error generating QR print:', error);
+        showError('Gagal membuat halaman cetak: ' + error.message);
+    }
 }
