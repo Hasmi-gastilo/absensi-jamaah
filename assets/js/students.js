@@ -10,11 +10,20 @@ const itemsPerPage = 10;
 let allStudents = [];
 let filteredStudents = [];
 
-// Jurusan options
+// Jurusan options dan mapping ke nama lengkap
 const JURUSAN_OPTIONS = {
     'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
     'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
     'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H']
+};
+
+// Mapping singkat ke nama lengkap jurusan
+const JURUSAN_NAMA_LENGKAP = {
+    'TKR': 'Teknik Kendaraan Ringan',
+    'TITL': 'Teknik Instalasi Tenaga Listrik',
+    'TKP': 'Teknik Konstruksi Permesinan',
+    'ATP': 'Agribisnis Tanaman Pangan',
+    'H': 'Perhotelan'
 };
 
 // Initialize
@@ -575,20 +584,38 @@ function initPrintQRModal() {
 function generateQRPrint(tingkat, jurusan, format) {
     showLoading('Membuat halaman cetak...');
     
+    // Debug: log data
+    console.log('allStudents count:', allStudents.length);
+    
     // Filter students
     let studentsForPrint = allStudents;
     
     if (tingkat && jurusan) {
-        // Filter dengan flexible matching - handle berbagai format nama jurusan
+        // Extract singkat dari jurusan (e.g., "TKR" dari "TKR A")
+        const jurusanSingkat = jurusan.split(' ')[0]; // "TKR A" -> "TKR"
+        const namaLengkap = JURUSAN_NAMA_LENGKAP[jurusanSingkat] || jurusan;
+        
+        console.log(`Filter: Tingkat=${tingkat}, Jurusan=${jurusan} (singkat=${jurusanSingkat}, lengkap=${namaLengkap})`);
+        
+        // Filter dengan flexible matching
         studentsForPrint = allStudents.filter(s => {
             if (!s.kelas) return false;
             
             const kelasUpper = s.kelas.toUpperCase();
             const tingkatMatch = kelasUpper.includes(tingkat.toUpperCase());
-            const jurusanMatch = kelasUpper.includes(jurusan.toUpperCase());
+            
+            // Match baik dengan singkat maupun nama lengkap
+            const jurusanMatch = kelasUpper.includes(jurusanSingkat.toUpperCase()) || 
+                                 kelasUpper.includes(namaLengkap.toUpperCase());
+            
+            if (tingkatMatch && jurusanMatch) {
+                console.log(`✓ Match: ${s.nama} (${s.kelas})`);
+            }
             
             return tingkatMatch && jurusanMatch;
         });
+        
+        console.log('Filtered students count:', studentsForPrint.length);
     }
     
     if (studentsForPrint.length === 0) {
