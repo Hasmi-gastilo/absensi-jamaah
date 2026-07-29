@@ -768,50 +768,65 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
     <meta charset="UTF-8">
     <title>QR Code Siswa - ${tingkat} ${jurusan}</title>
     <style>
-        @page { size: A4; margin: 10mm; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @page { 
+            size: A4 portrait; 
+            margin: 8mm;
+        }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
         body { 
             font-family: Arial, sans-serif; 
             background: white;
-            padding: 5mm;
+            width: 210mm;
+            margin: 0 auto;
         }
         .page { 
+            width: 100%;
+            min-height: 297mm;
             page-break-after: always;
+            padding: 0;
+            position: relative;
+        }
+        .page:last-child {
+            page-break-after: auto;
         }
         .header { 
             text-align: center; 
-            margin-bottom: 8mm; 
+            margin-bottom: 6mm; 
             border-bottom: 2px solid #7C3AED; 
-            padding-bottom: 5mm;
+            padding: 4mm 0;
         }
         .header h1 { 
             color: #7C3AED; 
-            font-size: 16px; 
-            margin-bottom: 3px; 
+            font-size: 14px; 
+            margin-bottom: 2px; 
             font-weight: bold;
         }
         .header p { 
             color: #666; 
-            font-size: 10px; 
-            margin: 2px 0; 
+            font-size: 9px; 
+            margin: 1px 0; 
         }
         .grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            gap: 5mm;
+            gap: 4mm;
             margin: 0;
         }
         .card { 
-            border: 1px solid #ccc; 
-            padding: 3mm;
+            border: 1px solid #bbb; 
+            padding: 2.5mm;
             text-align: center;
             page-break-inside: avoid;
             break-inside: avoid;
             background: white;
-            height: 55mm;
+            height: 52mm;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
         }
         .card-qr {
             width: 100%;
@@ -820,6 +835,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             align-items: center;
             justify-content: center;
             margin-bottom: 2mm;
+            flex-shrink: 0;
         }
         .card-qr img {
             max-width: 100%;
@@ -831,35 +847,42 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             flex-shrink: 0;
         }
         .card-text h3 { 
-            font-size: 8px; 
-            margin-bottom: 2px; 
+            font-size: 7.5px; 
+            margin-bottom: 1.5px; 
             font-weight: bold;
             line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
         .card-text p { 
-            font-size: 7px; 
-            margin: 1px 0; 
+            font-size: 6.5px; 
+            margin: 0.5px 0; 
             color: #555;
             line-height: 1.3;
         }
         @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+            }
             body { 
                 margin: 0; 
-                padding: 3mm; 
+                padding: 0; 
             }
             .page { 
                 margin: 0; 
-                padding: 0;
+                padding: 8mm;
+                min-height: 297mm;
             }
             .grid {
-                gap: 4mm;
+                gap: 3.5mm;
             }
             .card {
-                height: 52mm;
-                padding: 2.5mm;
+                height: 50mm;
+                padding: 2mm;
             }
             .card-qr {
                 height: 36mm;
@@ -869,23 +892,29 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
 </head>
 <body>`;
 
-        // Group QR codes into pages (20 per page = 4 cols x 5 rows)
-        const itemsPerPage = 20;
+        // Calculate items per page
+        // A4 height: 297mm - 16mm margin = 281mm
+        // Header: ~20mm
+        // Available: ~261mm
+        // Card height: 52mm
+        // Gap: 4mm
+        // Row height: 52mm + 4mm = 56mm
+        // Rows per page: 261mm / 56mm = 4.66 ≈ 4 rows
+        // Items per page: 4 cols x 4 rows = 16 items
+        const itemsPerPage = 16;
         const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
         
         for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
             html += '<div class="page">';
             
-            // Add header only on first page
-            if (pageIdx === 0) {
-                html += `
-                    <div class="header">
-                        <h1>QR Code Siswa</h1>
-                        <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
-                        <p>Tingkat ${tingkat} - ${jurusan}</p>
-                    </div>
-                `;
-            }
+            // Add header on every page
+            html += `
+                <div class="header">
+                    <h1>QR Code Siswa</h1>
+                    <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
+                    <p>Tingkat ${tingkat} - ${jurusan} (Halaman ${pageIdx + 1}/${totalPages})</p>
+                </div>
+            `;
             
             html += '<div class="grid">';
             
@@ -900,7 +929,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 html += `
                     <div class="card">
                         <div class="card-qr">
-                            ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;font-size:10px;">QR Error</div>'}
+                            ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;font-size:9px;">QR Error</div>'}
                         </div>
                         <div class="card-text">
                             <h3>${qr.nama}</h3>
