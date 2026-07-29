@@ -768,48 +768,102 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
     <meta charset="UTF-8">
     <title>QR Code Siswa - ${tingkat} ${jurusan}</title>
     <style>
+        @page { size: A4; margin: 10mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: white; }
-        .page { page-break-after: always; padding: 10mm; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: white;
+            padding: 5mm;
+        }
+        .page { 
+            page-break-after: always;
+        }
         .header { 
             text-align: center; 
-            margin-bottom: 15mm; 
+            margin-bottom: 8mm; 
             border-bottom: 2px solid #7C3AED; 
-            padding-bottom: 8mm;
+            padding-bottom: 5mm;
         }
-        .header h1 { color: #7C3AED; font-size: 18px; margin-bottom: 5px; }
-        .header p { color: #666; font-size: 11px; margin: 3px 0; }
+        .header h1 { 
+            color: #7C3AED; 
+            font-size: 16px; 
+            margin-bottom: 3px; 
+            font-weight: bold;
+        }
+        .header p { 
+            color: #666; 
+            font-size: 10px; 
+            margin: 2px 0; 
+        }
         .grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            gap: 10mm;
+            gap: 5mm;
+            margin: 0;
         }
         .card { 
-            border: 1px solid #ddd; 
-            padding: 8mm;
+            border: 1px solid #ccc; 
+            padding: 3mm;
             text-align: center;
             page-break-inside: avoid;
             break-inside: avoid;
+            background: white;
+            height: 55mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .card-qr {
             width: 100%;
-            height: 100mm;
-            border: 1px solid #eee;
-            margin-bottom: 5mm;
+            height: 38mm;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
+            margin-bottom: 2mm;
         }
         .card-qr img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
         }
-        .card-text h3 { font-size: 9px; margin-bottom: 3px; font-weight: bold; }
-        .card-text p { font-size: 8px; margin: 1px 0; color: #555; }
+        .card-text {
+            flex-shrink: 0;
+        }
+        .card-text h3 { 
+            font-size: 8px; 
+            margin-bottom: 2px; 
+            font-weight: bold;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .card-text p { 
+            font-size: 7px; 
+            margin: 1px 0; 
+            color: #555;
+            line-height: 1.3;
+        }
         @media print {
-            body { margin: 0; padding: 0; }
-            .page { margin: 0; padding: 5mm; page-break-after: always; }
+            body { 
+                margin: 0; 
+                padding: 3mm; 
+            }
+            .page { 
+                margin: 0; 
+                padding: 0;
+            }
+            .grid {
+                gap: 4mm;
+            }
+            .card {
+                height: 52mm;
+                padding: 2.5mm;
+            }
+            .card-qr {
+                height: 36mm;
+            }
         }
     </style>
 </head>
@@ -817,10 +871,12 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
 
         // Group QR codes into pages (20 per page = 4 cols x 5 rows)
         const itemsPerPage = 20;
-        for (let pageIdx = 0; pageIdx < Math.ceil(qrCodes.length / itemsPerPage); pageIdx++) {
+        const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
+        
+        for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
             html += '<div class="page">';
             
-            // Add header
+            // Add header only on first page
             if (pageIdx === 0) {
                 html += `
                     <div class="header">
@@ -844,7 +900,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 html += `
                     <div class="card">
                         <div class="card-qr">
-                            ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;">QR Error</div>'}
+                            ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;font-size:10px;">QR Error</div>'}
                         </div>
                         <div class="card-text">
                             <h3>${qr.nama}</h3>
@@ -865,11 +921,11 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         
         Swal.close();
         
-        // Auto-focus and print
+        // Auto-focus and print after images load
         setTimeout(() => {
             printWindow.focus();
             printWindow.print();
-        }, 1000);
+        }, 1200);
         
     } catch (error) {
         Swal.close();
