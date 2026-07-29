@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-07-29
+
+### ✨ New Features - Report System Improvements
+- ✅ **Filter Laporan per Bulan** - Ganti date range dengan month picker
+- ✅ **Filter Laporan per Tingkat + Jurusan** - Dropdown terpisah untuk Tingkat & Jurusan
+- ✅ **Support Nama Jurusan Lengkap** - Filter mendukung TKR (singkat) dan Teknik Kendaraan Ringan (lengkap)
+- ✅ **Export dengan Nama File Bulan** - Excel & PDF menggunakan format `Laporan_Absensi_2026-07.xlsx`
+- ✅ **Info Filter di PDF** - Header PDF menampilkan Bulan | Tingkat | Jurusan yang dipilih
+
+### 🔧 Technical Improvements
+- Flexible class filtering: mendukung format singkat (TKR) dan lengkap (Teknik Kendaraan Ringan)
+- Jurusan tanpa angka (TKP, ATPH) akan menampilkan semua siswa di jurusan tersebut
+- Jurusan dengan angka (TKR A) hanya menampilkan siswa dengan angka exact match
+- Dynamic jurusan dropdown berdasarkan tingkat yang dipilih
+
 ## [1.2.0] - 2026-07-27
 
 ### ✨ New Features
