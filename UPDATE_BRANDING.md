@@ -13,7 +13,7 @@
 
 **Perubahan:**
 - ✅ Halaman Login: Title & Header
-- ✅ Sidebar semua halaman: "Absensi SMK N 1 Sangasanga"
+- ✅ Sidebar semua halaman: "Absensi SMK Negeri 1 Sangasanga"
 - ✅ Title browser (tab) di semua halaman
 - ✅ Footer halaman login
 - ✅ Print QR Code
@@ -91,7 +91,7 @@ Oops... Gagal membuat laporan
 <h5>E-Absensi</h5>
 
 <!-- Sesudah -->
-<h5>Absensi SMK N 1 Sangasanga</h5>
+<h5>Absensi SMK Negeri 1 Sangasanga</h5>
 ```
 
 **Alasan singkat:** Agar tidak terlalu panjang di sidebar yang terbatas lebar
@@ -233,7 +233,7 @@ reportData.sort((a, b) => {
 
 ### Test 2: Sidebar
 1. ✅ Login ke dashboard
-2. ✅ Cek sidebar header: "Absensi SMK N 1 Sangasanga"
+2. ✅ Cek sidebar header: "Absensi SMK Negeri 1 Sangasanga"
 3. ✅ Buka halaman lain
 4. ✅ Pastikan sidebar konsisten
 
@@ -271,7 +271,7 @@ reportData.sort((a, b) => {
 | Aspek | Value |
 |-------|-------|
 | Nama Aplikasi | Absensi Jama'ah SMK Negeri 1 Sangasanga |
-| Sidebar | Absensi SMK N 1 Sangasanga |
+| Sidebar | Absensi SMK Negeri 1 Sangasanga |
 | Footer | Absensi Jama'ah SMK Negeri 1 Sangasanga |
 | Print QR | Absensi Jama'ah SMK Negeri 1 Sangasanga |
 | PDF Laporan | Laporan Absensi Jama'ah<br>SMK Negeri 1 Sangasanga |
@@ -314,7 +314,7 @@ Jika ingin mengubah nama sekolah di masa depan:
 
 **Tips:**
 - Gunakan "Find & Replace" di editor
-- Cari: "Absensi SMK N 1 Sangasanga"
+- Cari: "Absensi SMK Negeri 1 Sangasanga"
 - Ganti dengan nama baru
 - Cari juga: "Absensi Jama'ah SMK Negeri 1 Sangasanga"
 

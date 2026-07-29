@@ -43,7 +43,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🎨 Branding
 - ✅ **Update nama aplikasi** - "Absensi Jama'ah SMK Negeri 1 Sangasanga"
-- ✅ **Update sidebar** - "Absensi SMK N 1 Sangasanga"
+- ✅ **Update sidebar** - "Absensi SMK Negeri 1 Sangasanga"
 - ✅ **Update semua title** - Browser tab menampilkan nama sekolah
 - ✅ **Update print QR** - Footer dengan nama sekolah lengkap
 - ✅ **Update PDF laporan** - Header dengan nama sekolah
