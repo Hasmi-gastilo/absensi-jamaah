@@ -63,6 +63,7 @@ function parseKelas(kelas) {
 document.addEventListener('DOMContentLoaded', () => {
     loadAttendance();
     initFilters();
+    initResetButton();
 });
 
 /**
@@ -234,6 +235,118 @@ function applyFilters() {
     
     currentPage = 1;
     displayAttendance();
+}
+
+/**
+ * Initialize reset button
+ */
+function initResetButton() {
+    document.getElementById('btnResetAbsensi').addEventListener('click', async () => {
+        const result = await Swal.fire({
+            title: '⚠️ Peringatan!',
+            html: `
+                <p><strong>Apakah Anda yakin ingin menghapus SEMUA data absensi?</strong></p>
+                <p style="color: #EF4444; margin-top: 10px;">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    Tindakan ini TIDAK DAPAT dibatalkan!
+                </p>
+                <p style="margin-top: 10px;">Semua data absensi akan dihapus secara permanen.</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Hapus Semua',
+            cancelButtonText: 'Batal',
+            focusCancel: true
+        });
+        
+        if (result.isConfirmed) {
+            // Double confirmation
+            const confirm2 = await Swal.fire({
+                title: 'Konfirmasi Terakhir',
+                text: 'Ketik "HAPUS" untuk melanjutkan',
+                input: 'text',
+                inputPlaceholder: 'Ketik HAPUS',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Hapus Semua Data',
+                cancelButtonText: 'Batal',
+                inputValidator: (value) => {
+                    if (value !== 'HAPUS') {
+                        return 'Ketik "HAPUS" dengan huruf kapital untuk melanjutkan';
+                    }
+                }
+            });
+            
+            if (confirm2.isConfirmed) {
+                await resetAllAttendance();
+            }
+        }
+    });
+}
+
+/**
+ * Reset all attendance data
+ */
+async function resetAllAttendance() {
+    try {
+        showLoading('Menghapus semua data absensi...');
+        
+        // Get all attendance documents
+        const snapshot = await db.collection('attendance').get();
+        
+        if (snapshot.empty) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Tidak Ada Data',
+                text: 'Tidak ada data absensi untuk dihapus',
+                confirmButtonColor: '#7C3AED'
+            });
+            return;
+        }
+        
+        // Delete in batches (Firestore limit: 500 per batch)
+        const batchSize = 500;
+        let batch = db.batch();
+        let count = 0;
+        let totalDeleted = 0;
+        
+        for (const doc of snapshot.docs) {
+            batch.delete(doc.ref);
+            count++;
+            totalDeleted++;
+            
+            // Commit batch when reaching limit
+            if (count >= batchSize) {
+                await batch.commit();
+                batch = db.batch();
+                count = 0;
+            }
+        }
+        
+        // Commit remaining deletes
+        if (count > 0) {
+            await batch.commit();
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: `${totalDeleted} data absensi telah dihapus`,
+            confirmButtonColor: '#7C3AED'
+        });
+        
+        // Reload data
+        allAttendance = [];
+        filteredAttendance = [];
+        displayAttendance();
+        
+    } catch (error) {
+        console.error('Error resetting attendance:', error);
+        showError('Gagal menghapus data absensi: ' + error.message);
+    }
 }
 
 // Make function global
