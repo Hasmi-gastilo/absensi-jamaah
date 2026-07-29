@@ -157,21 +157,41 @@ async function generateReport() {
 
 /**
  * Parse kelas menjadi tingkat dan jurusan
+ * Handle both short (XI TKR A) and long format (XI Teknik Kendaraan Ringan A)
  */
 function parseKelas(kelas) {
     if (!kelas || kelas === '-') {
         return { tingkat: '-', jurusan: '-' };
     }
     
-    // Format: "XI TKR A" atau "X TITL B"
-    const parts = kelas.trim().split(/\s+/);
-    if (parts.length >= 2) {
-        const tingkat = parts[0];
-        const jurusan = parts.slice(1).join(' ');
-        return { tingkat, jurusan };
+    const kelasUpper = kelas.toUpperCase().trim();
+    
+    // Extract tingkat (X, XI, XII)
+    const tingkatMatch = kelasUpper.match(/^(X|XI|XII)\s+/);
+    if (!tingkatMatch) {
+        return { tingkat: kelas, jurusan: '-' };
     }
     
-    return { tingkat: kelas, jurusan: '-' };
+    const tingkat = tingkatMatch[1];
+    const sisaNama = kelasUpper.substring(tingkatMatch[0].length).trim();
+    
+    // Try to identify jurusan and convert to full name
+    let jurusan = sisaNama;
+    
+    // Check if it's a short format and convert to long format
+    if (sisaNama.startsWith('TKR')) {
+        jurusan = sisaNama.replace('TKR', 'TEKNIK KENDARAAN RINGAN');
+    } else if (sisaNama.startsWith('TITL')) {
+        jurusan = sisaNama.replace('TITL', 'TEKNIK INSTALASI TENAGA LISTRIK');
+    } else if (sisaNama.startsWith('TKP')) {
+        jurusan = sisaNama.replace('TKP', 'TEKNIK KONSTRUKSI DAN PERUMAHAN');
+    } else if (sisaNama.startsWith('ATPH')) {
+        jurusan = sisaNama.replace('ATPH', 'AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA');
+    } else if (sisaNama.startsWith('ATP')) {
+        jurusan = sisaNama.replace('ATP', 'AGRIBISNIS TANAMAN PANGAN');
+    }
+    
+    return { tingkat, jurusan };
 }
 
 /**

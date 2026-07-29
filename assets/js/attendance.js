@@ -10,6 +10,55 @@ const itemsPerPage = 15;
 let allAttendance = [];
 let filteredAttendance = [];
 
+// Mapping singkat ke nama lengkap jurusan
+const JURUSAN_NAMA_LENGKAP = {
+    'TKR': 'Teknik Kendaraan Ringan',
+    'TITL': 'Teknik Instalasi Tenaga Listrik',
+    'TKP': 'Teknik Konstruksi dan Perumahan',
+    'ATPH': 'Agribisnis Tanaman Pangan dan Hortikultura',
+    'ATP': 'Agribisnis Tanaman Pangan',
+    'H': 'Perhotelan'
+};
+
+/**
+ * Parse kelas menjadi tingkat dan jurusan
+ * Handle both short (XI TKR A) and long format (XI Teknik Kendaraan Ringan A)
+ */
+function parseKelas(kelas) {
+    if (!kelas || kelas === '-') {
+        return { tingkat: '-', jurusan: '-' };
+    }
+    
+    const kelasUpper = kelas.toUpperCase().trim();
+    
+    // Extract tingkat (X, XI, XII)
+    const tingkatMatch = kelasUpper.match(/^(X|XI|XII)\s+/);
+    if (!tingkatMatch) {
+        return { tingkat: kelas, jurusan: '-' };
+    }
+    
+    const tingkat = tingkatMatch[1];
+    const sisaNama = kelasUpper.substring(tingkatMatch[0].length).trim();
+    
+    // Try to identify jurusan and convert to full name
+    let jurusan = sisaNama;
+    
+    // Check if it's a short format and convert to long format
+    if (sisaNama.startsWith('TKR')) {
+        jurusan = sisaNama.replace('TKR', 'TEKNIK KENDARAAN RINGAN');
+    } else if (sisaNama.startsWith('TITL')) {
+        jurusan = sisaNama.replace('TITL', 'TEKNIK INSTALASI TENAGA LISTRIK');
+    } else if (sisaNama.startsWith('TKP')) {
+        jurusan = sisaNama.replace('TKP', 'TEKNIK KONSTRUKSI DAN PERUMAHAN');
+    } else if (sisaNama.startsWith('ATPH')) {
+        jurusan = sisaNama.replace('ATPH', 'AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA');
+    } else if (sisaNama.startsWith('ATP')) {
+        jurusan = sisaNama.replace('ATP', 'AGRIBISNIS TANAMAN PANGAN');
+    }
+    
+    return { tingkat, jurusan };
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadAttendance();
@@ -54,7 +103,7 @@ function displayAttendance() {
     tbody.innerHTML = '';
     
     if (filteredAttendance.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Tidak ada data absensi</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Tidak ada data absensi</td></tr>';
         return;
     }
     
@@ -64,13 +113,16 @@ function displayAttendance() {
     const paginatedData = filteredAttendance.slice(startIndex, endIndex);
     
     paginatedData.forEach((data) => {
+        const { tingkat, jurusan } = parseKelas(data.kelas);
+        
         const row = `
             <tr>
                 <td>${data.tanggal}</td>
                 <td>${data.jam}</td>
                 <td>${data.nisn}</td>
                 <td>${data.nama}</td>
-                <td>${data.kelas}</td>
+                <td>${tingkat}</td>
+                <td>${jurusan}</td>
                 <td>${data.jenisAbsensi}</td>
                 <td><span class="badge ${data.statusWaktu === 'Tepat Waktu' ? 'badge-success' : 'badge-warning'}">${data.statusWaktu}</span></td>
                 <td>${data.operator || '-'}</td>
