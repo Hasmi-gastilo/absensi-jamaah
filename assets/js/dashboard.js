@@ -1,17 +1,24 @@
 /**
  * Dashboard Module
- * Menampilkan statistik dan grafik kehadiran
+ * Menampilkan statistik dan grafik kehadiran real-time
  */
 
 // Check authentication
 checkAuth();
 
 let dailyChart, weeklyChart, monthlyChart;
+let refreshInterval;
 
 // Initialize dashboard on load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDashboardData();
-    initCharts();
+    await initCharts();
+    
+    // Auto refresh every 30 seconds
+    refreshInterval = setInterval(async () => {
+        await loadStatistics();
+        await loadRecentActivity();
+    }, 30000);
 });
 
 /**
@@ -35,7 +42,7 @@ async function loadDashboardData() {
         const settingsDoc = await db.collection('settings').doc('school').get();
         if (settingsDoc.exists) {
             const settings = settingsDoc.data();
-            document.getElementById('schoolName').textContent = settings.name || 'Sekolah';
+            document.getElementById('schoolName').textContent = settings.name || 'SMK Negeri 1 Sangasanga';
         }
         
         // Display current date
@@ -74,7 +81,6 @@ async function loadStatistics() {
             .where('tanggal', '==', todayDate)
             .get();
         
-        let totalPresent = 0;
         let totalLate = 0;
         const uniqueStudents = new Set();
         
@@ -82,15 +88,13 @@ async function loadStatistics() {
             const data = doc.data();
             uniqueStudents.add(data.nisn);
             
-            if (data.statusWaktu === 'Tepat Waktu') {
-                totalPresent++;
-            } else if (data.statusWaktu === 'Terlambat') {
+            if (data.statusWaktu === 'Terlambat') {
                 totalLate++;
             }
         });
         
         // Count unique present students
-        totalPresent = uniqueStudents.size;
+        const totalPresent = uniqueStudents.size;
         const totalAbsent = totalStudents - totalPresent;
         
         document.getElementById('totalPresent').textContent = totalPresent;
@@ -144,7 +148,7 @@ async function loadRecentActivity() {
             const data = doc.data();
             const row = `
                 <tr>
-                    <td>${formatTime(data.timestamp.toDate())}</td>
+                    <td>${data.jam}</td>
                     <td>${data.nisn}</td>
                     <td>${data.nama}</td>
                     <td>${data.kelas}</td>
@@ -161,96 +165,299 @@ async function loadRecentActivity() {
 }
 
 /**
- * Initialize charts
+ * Initialize charts with real data from Firebase
  */
-function initCharts() {
-    // Daily Chart
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    dailyChart = new Chart(dailyCtx, {
-        type: 'line',
-        data: {
-            labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
-            datasets: [{
-                label: 'Kehadiran',
-                data: [0, 0, 5, 45, 30, 10, 5, 0],
-                borderColor: '#7C3AED',
-                backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+async function initCharts() {
+    await loadDailyChart();
+    await loadWeeklyChart();
+    await loadMonthlyChart();
+}
+
+/**
+ * Load Daily Chart - Absensi per jam hari ini
+ */
+async function loadDailyChart() {
+    const todayDate = getTodayDate();
     
-    // Weekly Chart
-    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
-    weeklyChart = new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
-            datasets: [{
-                label: 'Hadir',
-                data: [85, 90, 88, 92, 87, 80],
-                backgroundColor: '#7C3AED'
-            }, {
-                label: 'Tidak Hadir',
-                data: [15, 10, 12, 8, 13, 20],
-                backgroundColor: '#EF4444'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+    try {
+        const snapshot = await db.collection('attendance')
+            .where('tanggal', '==', todayDate)
+            .get();
+        
+        // Group by hour
+        const hourlyData = {};
+        for (let i = 0; i < 24; i++) {
+            hourlyData[i] = 0;
         }
-    });
-    
-    // Monthly Chart
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    monthlyChart = new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            datasets: [{
-                label: 'Persentase Kehadiran',
-                data: [88, 92, 85, 90],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+        
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const hour = parseInt(data.jam.split(':')[0]);
+            hourlyData[hour]++;
+        });
+        
+        const labels = [];
+        const dataPoints = [];
+        for (let i = 6; i <= 16; i++) { // 06:00 - 16:00 (jam sekolah)
+            labels.push(String(i).padStart(2, '0') + ':00');
+            dataPoints.push(hourlyData[i] || 0);
+        }
+        
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        dailyChart = new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Absensi',
+                    data: dataPoints,
+                    borderColor: '#7C3AED',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Absensi: ' + context.parsed.y + ' siswa';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 5
+                        }
+                    }
                 }
             }
+        });
+        
+    } catch (error) {
+        console.error('Error loading daily chart:', error);
+    }
+}
+
+/**
+ * Load Weekly Chart - Absensi 7 hari terakhir
+ */
+async function loadWeeklyChart() {
+    try {
+        const labels = [];
+        const hadirData = [];
+        const tidakHadirData = [];
+        
+        // Get total students
+        const studentsSnapshot = await db.collection('students')
+            .where('status', '==', 'Aktif')
+            .get();
+        const totalStudents = studentsSnapshot.size;
+        
+        // Get last 7 days data
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = formatDateForQuery(date);
+            const dayName = getDayName(date);
+            
+            labels.push(dayName);
+            
+            const snapshot = await db.collection('attendance')
+                .where('tanggal', '==', dateStr)
+                .get();
+            
+            const uniqueStudents = new Set();
+            snapshot.forEach((doc) => {
+                uniqueStudents.add(doc.data().nisn);
+            });
+            
+            const present = uniqueStudents.size;
+            const absent = totalStudents - present;
+            
+            hadirData.push(present);
+            tidakHadirData.push(absent);
         }
-    });
+        
+        const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+        weeklyChart = new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Hadir',
+                    data: hadirData,
+                    backgroundColor: '#7C3AED'
+                }, {
+                    label: 'Tidak Hadir',
+                    data: tidakHadirData,
+                    backgroundColor: '#EF4444'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' siswa';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stacked: false
+                    },
+                    x: {
+                        stacked: false
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading weekly chart:', error);
+    }
+}
+
+/**
+ * Load Monthly Chart - Persentase kehadiran per minggu bulan ini
+ */
+async function loadMonthlyChart() {
+    try {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const labels = [];
+        const percentageData = [];
+        
+        // Get total students
+        const studentsSnapshot = await db.collection('students')
+            .where('status', '==', 'Aktif')
+            .get();
+        const totalStudents = studentsSnapshot.size;
+        
+        // Calculate for each week of the month
+        let weekNum = 1;
+        let currentDate = new Date(firstDay);
+        
+        while (currentDate.getMonth() === today.getMonth() && weekNum <= 4) {
+            const weekStart = new Date(currentDate);
+            const weekEnd = new Date(currentDate);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            if (weekEnd > today) {
+                weekEnd.setTime(today.getTime());
+            }
+            
+            labels.push('Minggu ' + weekNum);
+            
+            // Get attendance for this week
+            let totalPresent = 0;
+            let dayCount = 0;
+            
+            for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
+                const dateStr = formatDateForQuery(d);
+                const snapshot = await db.collection('attendance')
+                    .where('tanggal', '==', dateStr)
+                    .get();
+                
+                const uniqueStudents = new Set();
+                snapshot.forEach((doc) => {
+                    uniqueStudents.add(doc.data().nisn);
+                });
+                
+                totalPresent += uniqueStudents.size;
+                dayCount++;
+            }
+            
+            const avgPresent = dayCount > 0 ? totalPresent / dayCount : 0;
+            const percentage = totalStudents > 0 ? Math.round((avgPresent / totalStudents) * 100) : 0;
+            percentageData.push(percentage);
+            
+            currentDate.setDate(currentDate.getDate() + 7);
+            weekNum++;
+        }
+        
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        monthlyChart = new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Persentase Kehadiran',
+                    data: percentageData,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Kehadiran: ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading monthly chart:', error);
+    }
+}
+
+/**
+ * Helper function to format date for query
+ */
+function formatDateForQuery(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * Helper function to get day name
+ */
+function getDayName(date) {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    return days[date.getDay()];
 }
