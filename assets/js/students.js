@@ -636,29 +636,44 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
     try {
         showLoading('Membuat QR Code...');
         
-        // Create container untuk generate QR codes
-        const tempContainer = document.createElement('div');
-        tempContainer.style.display = 'none';
-        document.body.appendChild(tempContainer);
-        
-        // Generate all QR codes first
+        // Generate QR codes with proper delay
         const qrCodes = [];
+        
         for (const student of students) {
-            const canvas = document.createElement('canvas');
-            tempContainer.appendChild(canvas);
+            // Create temporary div for QR generation
+            const tempDiv = document.createElement('div');
+            tempDiv.style.display = 'none';
+            document.body.appendChild(tempDiv);
             
             // Generate QR Code
-            new QRCode(canvas, {
+            new QRCode(tempDiv, {
                 text: student.nisn,
-                width: 150,
-                height: 150,
+                width: 120,
+                height: 120,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
             
-            // Convert to image URL
-            const qrDataUrl = canvas.toDataURL('image/png');
+            // Wait a bit for QR to render
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Get the canvas from the QR code
+            const canvas = tempDiv.querySelector('canvas');
+            let qrDataUrl = '';
+            
+            if (canvas) {
+                // Canvas QR code
+                qrDataUrl = canvas.toDataURL('image/png');
+            } else {
+                // Fallback: SVG QR code (if library generates SVG)
+                const svg = tempDiv.querySelector('svg');
+                if (svg) {
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    qrDataUrl = 'data:image/svg+xml;base64,' + btoa(svgData);
+                }
+            }
+            
             const { tingkat: t, jurusan: j } = parseKelas(student.kelas);
             
             qrCodes.push({
@@ -668,10 +683,12 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
                 jurusan: j,
                 qrImage: qrDataUrl
             });
+            
+            // Remove temp div
+            document.body.removeChild(tempDiv);
         }
         
-        // Remove temp container
-        tempContainer.remove();
+        Swal.close();
         
         if (format === 'pdf') {
             // Generate PDF with jsPDF
@@ -695,7 +712,7 @@ async function generatePDFWithQR(qrCodes, tingkat, jurusan) {
     try {
         // Check if jsPDF is available
         if (typeof jsPDF === 'undefined') {
-            showError('Library PDF tidak tersedia. Gunakan Print to PDF dari browser.');
+            console.warn('jsPDF not available, using print page instead');
             generatePrintPage(qrCodes, tingkat, jurusan);
             return;
         }
@@ -710,50 +727,87 @@ async function generatePDFWithQR(qrCodes, tingkat, jurusan) {
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const margin = 10;
-        const itemWidth = (pageWidth - margin * 2 - 6) / 4; // 6mm gap between columns
-        const itemHeight = itemWidth + 30; // For text
+        const colsPerRow = 4;
+        const itemWidth = (pageWidth - margin * 2 - 6) / colsPerRow;
+        const itemHeight = itemWidth + 35;
         
-        let x = margin;
-        let y = margin + 20; // Space for header
+        let row = 0;
+        let col = 0;
         let pageNum = 1;
         
-        // Add header
-        pdf.setFontSize(14);
-        pdf.text('QR Code Siswa', pageWidth / 2, 10, { align: 'center' });
-        pdf.setFontSize(10);
-        pdf.text('Absensi Jama\'ah SMK Negeri 1 Sangasanga', pageWidth / 2, 16, { align: 'center' });
-        if (tingkat) {
-            pdf.text(`Tingkat ${tingkat} - ${jurusan}`, pageWidth / 2, 22, { align: 'center' });
-        }
+        // Add header on first page
+        let isFirstPage = true;
         
-        // Add QR codes
         qrCodes.forEach((qr, index) => {
-            // Check if need new page
-            if (y + itemHeight > pageHeight - 10) {
+            // Add new page if needed
+            if (row * (itemHeight + 5) + margin + 30 > pageHeight - 10) {
                 pdf.addPage();
-                y = margin;
-                x = margin;
+                row = 0;
+                col = 0;
+                isFirstPage = false;
                 pageNum++;
             }
             
-            // Add QR image
-            pdf.addImage(qr.qrImage, 'PNG', x + 2, y, itemWidth - 4, itemWidth - 4);
+            // Add header on first page only
+            if (isFirstPage && index === 0) {
+                pdf.setFontSize(14);
+                pdf.setTextColor(124, 58, 237);
+                pdf.text('QR Code Siswa', pageWidth / 2, 12, { align: 'center' });
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text('Absensi Jama\'ah SMK Negeri 1 Sangasanga', pageWidth / 2, 18, { align: 'center' });
+                
+                if (tingkat) {
+                    pdf.text(`Tingkat ${tingkat} - ${jurusan}`, pageWidth / 2, 24, { align: 'center' });
+                }
+                
+                // Draw line
+                pdf.setDrawColor(124, 58, 237);
+                pdf.line(margin, 26, pageWidth - margin, 26);
+            }
+            
+            // Calculate position
+            const x = margin + col * (itemWidth + 1.5);
+            const y = margin + 30 + row * (itemHeight + 5);
+            
+            // Draw border
+            pdf.setDrawColor(200, 200, 200);
+            pdf.rect(x, y, itemWidth, itemHeight);
+            
+            // Add QR image if available
+            if (qr.qrImage && qr.qrImage.length > 0) {
+                try {
+                    pdf.addImage(qr.qrImage, 'PNG', x + 5, y + 5, itemWidth - 10, itemWidth - 10);
+                } catch (e) {
+                    console.warn('Could not add QR image:', e);
+                    // Draw placeholder
+                    pdf.setDrawColor(200, 200, 200);
+                    pdf.setFillColor(240, 240, 240);
+                    pdf.rect(x + 5, y + 5, itemWidth - 10, itemWidth - 10, 'FD');
+                }
+            } else {
+                // Draw placeholder for missing QR
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setFillColor(240, 240, 240);
+                pdf.rect(x + 5, y + 5, itemWidth - 10, itemWidth - 10, 'FD');
+            }
             
             // Add text
-            const textY = y + itemWidth;
+            const textStartY = y + itemWidth;
             pdf.setFontSize(8);
-            pdf.text(qr.nama, x + itemWidth / 2, textY + 5, { align: 'center', maxWidth: itemWidth - 2 });
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(qr.nama, x + itemWidth / 2, textStartY + 5, { align: 'center', maxWidth: itemWidth - 4 });
+            
             pdf.setFontSize(7);
-            pdf.text(`NISN: ${qr.nisn}`, x + itemWidth / 2, textY + 11, { align: 'center' });
-            pdf.text(`${qr.tingkat} ${qr.jurusan}`, x + itemWidth / 2, textY + 16, { align: 'center' });
+            pdf.text(`NISN: ${qr.nisn}`, x + itemWidth / 2, textStartY + 11, { align: 'center' });
+            pdf.text(`${qr.tingkat} ${qr.jurusan}`, x + itemWidth / 2, textStartY + 17, { align: 'center' });
             
             // Move to next position
-            x += itemWidth + 1.5;
-            
-            // Check if need to wrap to next row
-            if ((index + 1) % 4 === 0) {
-                x = margin;
-                y += itemHeight + 5;
+            col++;
+            if (col >= colsPerRow) {
+                col = 0;
+                row++;
             }
         });
         
@@ -761,14 +815,11 @@ async function generatePDFWithQR(qrCodes, tingkat, jurusan) {
         const fileName = `QR_${tingkat}_${jurusan}_${new Date().toISOString().split('T')[0]}.pdf`;
         pdf.save(fileName);
         
-        Swal.close();
         showSuccess(`PDF berhasil didownload: ${fileName}`);
         
     } catch (error) {
-        Swal.close();
         console.error('Error generating PDF:', error);
         showError('Gagal membuat PDF. Gunakan Print to PDF dari browser.');
-        generatePrintPage(qrCodes, tingkat, jurusan);
     }
 }
 
@@ -791,58 +842,74 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                         padding: 0;
                         box-sizing: border-box;
                     }
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                    }
                     body {
                         font-family: Arial, sans-serif;
-                        padding: 20px;
+                        padding: 15px;
                         background: white;
                     }
                     .header {
                         text-align: center;
                         margin-bottom: 20px;
-                        border-bottom: 2px solid #7C3AED;
+                        border-bottom: 3px solid #7C3AED;
                         padding-bottom: 10px;
                     }
                     .header h2 {
                         color: #7C3AED;
                         margin-bottom: 5px;
-                        font-size: 18px;
+                        font-size: 16px;
                     }
                     .header p {
                         color: #666;
-                        font-size: 12px;
-                        margin: 3px 0;
+                        font-size: 11px;
+                        margin: 2px 0;
                     }
-                    .qr-grid {
+                    .qr-container {
                         display: grid;
                         grid-template-columns: repeat(4, 1fr);
-                        gap: 15px;
-                        margin-bottom: 30px;
+                        gap: 12px;
+                        margin: 0;
                     }
-                    .qr-item {
+                    .qr-card {
                         border: 1px solid #ddd;
-                        padding: 12px;
+                        padding: 10px;
                         text-align: center;
                         break-inside: avoid;
                         page-break-inside: avoid;
+                        display: flex;
+                        flex-direction: column;
                     }
-                    .qr-item img {
+                    .qr-image {
                         width: 100%;
                         height: auto;
                         margin-bottom: 8px;
+                        border: 1px solid #eee;
+                        padding: 5px;
+                        background: white;
                     }
-                    .qr-item h5 {
-                        font-size: 11px;
-                        margin: 5px 0;
+                    .qr-text h5 {
+                        font-size: 10px;
+                        margin: 5px 0 3px 0;
                         font-weight: bold;
+                        line-height: 1.2;
                     }
-                    .qr-item p {
-                        font-size: 9px;
-                        margin: 2px 0;
+                    .qr-text p {
+                        font-size: 8px;
+                        margin: 1px 0;
                         color: #555;
                     }
                     @media print {
                         body {
-                            padding: 10px;
+                            padding: 5px;
+                        }
+                        .qr-container {
+                            gap: 8px;
+                        }
+                        .qr-card {
+                            padding: 8px;
                         }
                     }
                 </style>
@@ -853,18 +920,19 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                     <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
                     ${tingkat ? `<p>Tingkat ${tingkat} - ${jurusan}</p>` : ''}
                 </div>
-                <div class="qr-grid">
+                <div class="qr-container">
         `;
         
-        // Add QR codes to HTML
+        // Add QR codes
         qrCodes.forEach(qr => {
             htmlContent += `
-                <div class="qr-item">
-                    <img src="${qr.qrImage}" alt="QR Code">
-                    <h5>${qr.nama}</h5>
-                    <p>NISN: ${qr.nisn}</p>
-                    <p>Tingkat: ${qr.tingkat}</p>
-                    <p>Jurusan: ${qr.jurusan}</p>
+                <div class="qr-card">
+                    ${qr.qrImage ? `<img src="${qr.qrImage}" class="qr-image" alt="QR Code">` : '<div style="width:100%;height:120px;background:#f0f0f0;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;color:#999;">QR Not Generated</div>'}
+                    <div class="qr-text">
+                        <h5>${qr.nama}</h5>
+                        <p>NISN: ${qr.nisn}</p>
+                        <p>${qr.tingkat} ${qr.jurusan}</p>
+                    </div>
                 </div>
             `;
         });
@@ -878,12 +946,10 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         
-        Swal.close();
-        
         // Wait for content to load then print
         setTimeout(() => {
             printWindow.print();
-        }, 500);
+        }, 800);
         
     } catch (error) {
         Swal.close();
