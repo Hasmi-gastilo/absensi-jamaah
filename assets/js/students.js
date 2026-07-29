@@ -579,8 +579,16 @@ function generateQRPrint(tingkat, jurusan, format) {
     let studentsForPrint = allStudents;
     
     if (tingkat && jurusan) {
-        const kelasFilter = `${tingkat} ${jurusan}`;
-        studentsForPrint = allStudents.filter(s => s.kelas === kelasFilter);
+        // Filter dengan flexible matching - handle berbagai format nama jurusan
+        studentsForPrint = allStudents.filter(s => {
+            if (!s.kelas) return false;
+            
+            const kelasUpper = s.kelas.toUpperCase();
+            const tingkatMatch = kelasUpper.includes(tingkat.toUpperCase());
+            const jurusanMatch = kelasUpper.includes(jurusan.toUpperCase());
+            
+            return tingkatMatch && jurusanMatch;
+        });
     }
     
     if (studentsForPrint.length === 0) {
