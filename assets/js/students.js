@@ -12,9 +12,9 @@ let filteredStudents = [];
 
 // Jurusan options dan mapping ke nama lengkap
 const JURUSAN_OPTIONS = {
-    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP'],
-    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP'],
-    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP']
+    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH'],
+    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH'],
+    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH']
 };
 
 // Mapping singkat ke nama lengkap jurusan
