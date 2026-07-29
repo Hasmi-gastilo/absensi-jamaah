@@ -23,7 +23,6 @@ async function loadSettings() {
             const schoolData = schoolDoc.data();
             document.getElementById('schoolName').value = schoolData.name || '';
             document.getElementById('schoolAddress').value = schoolData.address || '';
-            document.getElementById('schoolLogo').value = schoolData.logo || '';
         }
         
         // Load time settings
@@ -52,7 +51,6 @@ function initSchoolForm() {
         const schoolData = {
             name: document.getElementById('schoolName').value,
             address: document.getElementById('schoolAddress').value,
-            logo: document.getElementById('schoolLogo').value,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
