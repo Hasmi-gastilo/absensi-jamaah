@@ -7,22 +7,60 @@ checkAuth();
 
 let reportData = [];
 
+// Jurusan options (sama seperti di students.js)
+const JURUSAN_OPTIONS = {
+    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH'],
+    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH'],
+    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH']
+};
+
+// Mapping singkat ke nama lengkap jurusan
+const JURUSAN_NAMA_LENGKAP = {
+    'TKR': 'Teknik Kendaraan Ringan',
+    'TITL': 'Teknik Instalasi Tenaga Listrik',
+    'TKP': 'Teknik Konstruksi dan Perumahan',
+    'ATPH': 'Agribisnis Tanaman Pangan dan Hortikultura',
+    'ATP': 'Agribisnis Tanaman Pangan',
+    'H': 'Perhotelan'
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    setDefaultDates();
+    setDefaultMonth();
+    initTingkatJurusanDropdown();
     initFilterButton();
     initExportButtons();
 });
 
 /**
- * Set default dates (this month)
+ * Set default month (current month)
  */
-function setDefaultDates() {
+function setDefaultMonth() {
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    document.getElementById('startDate').valueAsDate = firstDay;
-    document.getElementById('endDate').valueAsDate = today;
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    document.getElementById('filterMonth').value = `${year}-${month}`;
+}
+
+/**
+ * Initialize Tingkat and Jurusan dropdown
+ */
+function initTingkatJurusanDropdown() {
+    // Handle tingkat change
+    document.getElementById('filterTingkat').addEventListener('change', (e) => {
+        const tingkat = e.target.value;
+        const jurusanSelect = document.getElementById('filterJurusan');
+        jurusanSelect.innerHTML = '<option value="">Semua</option>';
+        
+        if (tingkat && JURUSAN_OPTIONS[tingkat]) {
+            JURUSAN_OPTIONS[tingkat].forEach(jurusan => {
+                const option = document.createElement('option');
+                option.value = jurusan;
+                option.textContent = jurusan;
+                jurusanSelect.appendChild(option);
+            });
+        }
+    });
 }
 
 /**
@@ -38,20 +76,28 @@ function initFilterButton() {
  * Generate report based on filters
  */
 async function generateReport() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const filterKelas = document.getElementById('filterKelas').value;
+    const filterMonth = document.getElementById('filterMonth').value;
+    const filterTingkat = document.getElementById('filterTingkat').value;
+    const filterJurusan = document.getElementById('filterJurusan').value;
     const filterJenis = document.getElementById('filterJenisReport').value;
     
-    if (!startDate || !endDate) {
-        showError('Pilih tanggal mulai dan tanggal akhir');
+    if (!filterMonth) {
+        showError('Pilih bulan untuk laporan');
         return;
     }
     
     try {
         showLoading('Membuat laporan...');
         
-        // Simple query without orderBy to avoid index requirements
+        // Calculate start and end date from month
+        const [year, month] = filterMonth.split('-');
+        const startDate = `${year}-${month}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+        
+        console.log(`Querying from ${startDate} to ${endDate}`);
+        
+        // Simple query without orderBy
         let query = db.collection('attendance')
             .where('tanggal', '>=', startDate)
             .where('tanggal', '<=', endDate);
@@ -62,8 +108,31 @@ async function generateReport() {
         snapshot.forEach((doc) => {
             const data = { id: doc.id, ...doc.data() };
             
-            // Apply additional filters
-            if (filterKelas && data.kelas !== filterKelas) return;
+            // Apply class filter (tingkat + jurusan)
+            if (filterTingkat || filterJurusan) {
+                const kelasUpper = (data.kelas || '').toUpperCase();
+                
+                if (filterTingkat && !kelasUpper.startsWith(filterTingkat.toUpperCase())) {
+                    return; // Skip if tingkat doesn't match
+                }
+                
+                if (filterJurusan) {
+                    const jurusanSingkat = filterJurusan.split(' ')[0];
+                    const jurusanAngka = filterJurusan.split(' ')[1] || '';
+                    const namaLengkap = JURUSAN_NAMA_LENGKAP[jurusanSingkat] || jurusanSingkat;
+                    
+                    const jurusanMatch = kelasUpper.includes(jurusanSingkat.toUpperCase()) ||
+                                        kelasUpper.includes(namaLengkap.toUpperCase());
+                    
+                    const angkaMatch = jurusanAngka === '' ? true : kelasUpper.includes(jurusanAngka);
+                    
+                    if (!jurusanMatch || !angkaMatch) {
+                        return; // Skip if jurusan doesn't match
+                    }
+                }
+            }
+            
+            // Apply jenis filter
             if (filterJenis && data.jenisAbsensi !== filterJenis) return;
             
             reportData.push(data);
@@ -149,7 +218,8 @@ function exportToExcel() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Laporan Absensi');
         
-        const fileName = `Laporan_Absensi_${getTodayDate()}.xlsx`;
+        const filterMonth = document.getElementById('filterMonth').value;
+        const fileName = `Laporan_Absensi_${filterMonth}.xlsx`;
         XLSX.writeFile(wb, fileName);
         
         showSuccess('Laporan berhasil diexport ke Excel');
@@ -179,11 +249,17 @@ function exportToPDF() {
         doc.setFontSize(12);
         doc.text('SMK Negeri 1 Sangasanga', 14, 22);
         
-        // Date range
+        // Filter info
         doc.setFontSize(10);
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 30);
+        const filterMonth = document.getElementById('filterMonth').value;
+        const filterTingkat = document.getElementById('filterTingkat').value;
+        const filterJurusan = document.getElementById('filterJurusan').value;
+        
+        let filterText = `Bulan: ${filterMonth}`;
+        if (filterTingkat) filterText += ` | Tingkat: ${filterTingkat}`;
+        if (filterJurusan) filterText += ` | Jurusan: ${filterJurusan}`;
+        
+        doc.text(filterText, 14, 30);
         
         // Table
         const tableData = reportData.map((data, index) => [
@@ -205,7 +281,7 @@ function exportToPDF() {
             headStyles: { fillColor: [124, 58, 237] }
         });
         
-        const fileName = `Laporan_Absensi_${getTodayDate()}.pdf`;
+        const fileName = `Laporan_Absensi_${filterMonth}.pdf`;
         doc.save(fileName);
         
         showSuccess('Laporan berhasil diexport ke PDF');
