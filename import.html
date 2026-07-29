@@ -75,14 +75,13 @@
                             <h5 class="card-title mb-4"><i class="bi bi-info-circle"></i> Format Excel</h5>
                             <p>Pastikan file Excel memiliki kolom berikut:</p>
                             <ol>
+                                <li><strong>NO</strong> - Nomor urut (opsional)</li>
+                                <li><strong>NAMA</strong> - Nama Lengkap Siswa (WAJIB)</li>
                                 <li><strong>NISN</strong> - Nomor Induk Siswa Nasional (WAJIB)</li>
-                                <li><strong>Nama</strong> - Nama Lengkap Siswa (WAJIB)</li>
-                                <li><strong>Jenis Kelamin</strong> - Laki-laki/Perempuan (opsional)</li>
-                                <li><strong>Kelas</strong> - Contoh: VII-A (opsional)</li>
-                                <li><strong>Alamat</strong> - Alamat lengkap (opsional)</li>
-                                <li><strong>No HP</strong> - Nomor telepon (opsional)</li>
-                                <li><strong>Status</strong> - Aktif/Tidak Aktif (opsional)</li>
+                                <li><strong>TINGKATAN</strong> - Tingkat kelas: X, XI, XII (opsional)</li>
+                                <li><strong>JURUSAN</strong> - Jurusan/Program Keahlian: TKR A, TITL B, etc (opsional)</li>
                             </ol>
+                            <p class="text-muted small mt-3">Kolom Jenis Kelamin, Alamat, No HP, dan Status masih bisa ditambahkan jika diperlukan.</p>
                             
                             <button class="btn btn-outline-primary" id="btnDownloadTemplate">
                                 <i class="bi bi-download"></i> Download Template Excel
@@ -102,10 +101,10 @@
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <th>NISN</th>
                                             <th>Nama</th>
-                                            <th>JK</th>
-                                            <th>Kelas</th>
+                                            <th>NISN</th>
+                                            <th>Tingkat</th>
+                                            <th>Jurusan</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>

@@ -105,30 +105,51 @@ function handleFile(file) {
 }
 
 /**
- * Process Excel data
+ * Process Excel data - Support both old and new format
  */
 function processExcelData(data) {
     excelData = [];
     
     data.forEach((row, index) => {
+        // Support both old and new format
+        // New format: NO, NAMA, NISN, TINGKATAN, JURUSAN
+        // Old format: NISN, Nama, Jenis Kelamin, Kelas, etc.
+        
+        const nisn = row.NISN || row['NISN'];
+        const nama = row.Nama || row['NAMA'];
+        
         // Validate required fields
-        if (!row.NISN || !row.Nama) {
+        if (!nisn || !nama) {
             console.warn(`Baris ${index + 2} dilewati: NISN atau Nama kosong`);
             return;
         }
         
+        // Combine TINGKATAN + JURUSAN if they exist (new format)
+        let kelas = '-';
+        if (row.TINGKATAN && row.JURUSAN) {
+            kelas = `${row.TINGKATAN} ${row.JURUSAN}`.trim();
+        } else if (row.Kelas) {
+            kelas = row.Kelas; // Old format
+        }
+        
         const student = {
-            nisn: String(row.NISN),
-            nama: row.Nama,
+            nisn: String(nisn).trim(),
+            nama: String(nama).trim(),
             jenisKelamin: row['Jenis Kelamin'] || 'Laki-laki',
-            kelas: row.Kelas || '-',
+            kelas: kelas,
             alamat: row.Alamat || '',
-            noHp: row['No HP'] ? String(row['No HP']) : '',
+            noHp: row['No HP'] ? String(row['No HP']).trim() : '',
             status: row.Status || 'Aktif'
         };
         
         excelData.push(student);
     });
+    
+    if (excelData.length === 0) {
+        console.warn('Tidak ada data yang valid untuk diimport');
+        showError('Tidak ada data yang valid untuk diimport. Periksa format Excel Anda.');
+        return;
+    }
     
     // Display preview
     displayPreview();
@@ -148,13 +169,27 @@ function displayPreview() {
     const previewData = excelData.slice(0, 5);
     
     previewData.forEach((student, index) => {
+        // Parse kelas back into tingkat and jurusan for display
+        let tingkat = '-';
+        let jurusan = '-';
+        
+        if (student.kelas && student.kelas !== '-') {
+            const parts = student.kelas.trim().split(/\s+/);
+            if (parts.length >= 2) {
+                tingkat = parts[0];
+                jurusan = parts.slice(1).join(' ');
+            } else {
+                tingkat = student.kelas;
+            }
+        }
+        
         const row = `
             <tr>
                 <td>${index + 1}</td>
-                <td>${student.nisn}</td>
                 <td>${student.nama}</td>
-                <td>${student.jenisKelamin}</td>
-                <td>${student.kelas}</td>
+                <td>${student.nisn}</td>
+                <td>${tingkat}</td>
+                <td>${jurusan}</td>
                 <td><span class="badge ${student.status === 'Aktif' ? 'badge-success' : 'badge-danger'}">${student.status}</span></td>
             </tr>
         `;
@@ -274,63 +309,48 @@ function downloadTemplate() {
         // Create workbook
         const wb = XLSX.utils.book_new();
         
-        // Template data dengan contoh SMK
+        // Template data dengan format baru: NO | NAMA | NISN | TINGKATAN | JURUSAN
         const templateData = [
             {
-                'No': 1,
+                'NO': 1,
+                'NAMA': 'Ahmad Desmon Firmanda',
                 'NISN': '253164',
-                'Nama': 'Ahmad Desmon Firmanda',
-                'Jenis Kelamin': 'Laki-laki',
-                'Kelas': 'XI TEKNIK INSTALASI TENAGA LISTRIK A',
-                'Alamat': 'Jl. Mawar No. 10',
-                'No HP': '081234567890',
-                'Status': 'Aktif'
+                'TINGKATAN': 'XI',
+                'JURUSAN': 'TITL A'
             },
             {
-                'No': 2,
+                'NO': 2,
+                'NAMA': 'Ajni Sulian Muhammad',
                 'NISN': '253155',
-                'Nama': 'Ajni Sulian Muhammad',
-                'Jenis Kelamin': 'Laki-laki',
-                'Kelas': 'XI TEKNIK INSTALASI TENAGA LISTRIK A',
-                'Alamat': 'Jl. Melati No. 5',
-                'No HP': '082345678901',
-                'Status': 'Aktif'
+                'TINGKATAN': 'XI',
+                'JURUSAN': 'TITL A'
             },
             {
-                'No': 3,
+                'NO': 3,
+                'NAMA': 'Adrian Akhinaya Asliono',
                 'NISN': '253178',
-                'Nama': 'Adrian Akhinaya Asliono',
-                'Jenis Kelamin': 'Laki-laki',
-                'Kelas': 'XI TEKNIK INSTALASI TENAGA LISTRIK B',
-                'Alamat': 'Jl. Anggrek No. 15',
-                'No HP': '083456789012',
-                'Status': 'Aktif'
+                'TINGKATAN': 'XI',
+                'JURUSAN': 'TITL B'
             },
             {
-                'No': 4,
+                'NO': 4,
+                'NAMA': 'Abdul Hafiz',
                 'NISN': '253203',
-                'Nama': 'Abdul Hafiz',
-                'Jenis Kelamin': 'Laki-laki',
-                'Kelas': 'XI TEKNIK KENDARAAN RINGAN OTOMOTIF B',
-                'Alamat': 'Jl. Dahlia No. 20',
-                'No HP': '084567890123',
-                'Status': 'Aktif'
+                'TINGKATAN': 'XI',
+                'JURUSAN': 'TKR B'
             }
         ];
         
         // Convert to worksheet
         const ws = XLSX.utils.json_to_sheet(templateData);
         
-        // Set column widths (adjust for longer class names)
+        // Set column widths
         ws['!cols'] = [
-            { wch: 5 },  // No
+            { wch: 5 },  // NO
+            { wch: 30 }, // NAMA
             { wch: 12 }, // NISN
-            { wch: 30 }, // Nama
-            { wch: 15 }, // Jenis Kelamin
-            { wch: 45 }, // Kelas (lebih lebar untuk nama kelas panjang)
-            { wch: 30 }, // Alamat
-            { wch: 15 }, // No HP
-            { wch: 12 }  // Status
+            { wch: 12 }, // TINGKATAN
+            { wch: 20 }  // JURUSAN
         ];
         
         // Add worksheet to workbook
@@ -339,21 +359,19 @@ function downloadTemplate() {
         // Add instruction sheet
         const instructions = [
             { 'PETUNJUK PENGISIAN': 'Kolom yang WAJIB diisi:' },
-            { 'PETUNJUK PENGISIAN': '1. NISN (wajib, unik per siswa)' },
-            { 'PETUNJUK PENGISIAN': '2. Nama (wajib)' },
+            { 'PETUNJUK PENGISIAN': '1. NAMA (wajib)' },
+            { 'PETUNJUK PENGISIAN': '2. NISN (wajib, unik per siswa)' },
             { 'PETUNJUK PENGISIAN': '' },
             { 'PETUNJUK PENGISIAN': 'Kolom opsional:' },
-            { 'PETUNJUK PENGISIAN': '- Jenis Kelamin: Laki-laki atau Perempuan' },
-            { 'PETUNJUK PENGISIAN': '- Kelas: Tulis lengkap dengan jurusan' },
-            { 'PETUNJUK PENGISIAN': '  Contoh: XI TEKNIK INSTALASI TENAGA LISTRIK A' },
-            { 'PETUNJUK PENGISIAN': '- Alamat, No HP: Boleh dikosongkan' },
-            { 'PETUNJUK PENGISIAN': '- Status: Aktif atau Tidak Aktif' },
+            { 'PETUNJUK PENGISIAN': '- NO: Nomor urut (bisa dihitung otomatis)' },
+            { 'PETUNJUK PENGISIAN': '- TINGKATAN: X, XI, atau XII' },
+            { 'PETUNJUK PENGISIAN': '- JURUSAN: Nama jurusan/program keahlian' },
+            { 'PETUNJUK PENGISIAN': '  Contoh: TITL A, TKR B, TKP C, TKPI A, etc' },
             { 'PETUNJUK PENGISIAN': '' },
             { 'PETUNJUK PENGISIAN': 'TIPS:' },
             { 'PETUNJUK PENGISIAN': '- Hapus data contoh di sheet "Data Siswa"' },
             { 'PETUNJUK PENGISIAN': '- Isi dengan data siswa Anda' },
-            { 'PETUNJUK PENGISIAN': '- Nama kelas boleh panjang (maksimal 100 karakter)' },
-            { 'PETUNJUK PENGISIAN': '- Gunakan format yang konsisten untuk nama kelas' }
+            { 'PETUNJUK PENGISIAN': '- Gunakan format yang konsisten' }
         ];
         
         const wsInstructions = XLSX.utils.json_to_sheet(instructions);
