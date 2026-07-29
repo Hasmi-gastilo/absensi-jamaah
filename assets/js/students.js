@@ -26,6 +26,53 @@ const JURUSAN_NAMA_LENGKAP = {
     'H': 'Perhotelan'
 };
 
+/**
+ * Parse kelas string to extract tingkat, jurusan, and angka
+ * Examples:
+ * "X TKR A" -> {tingkat: "X", jurusanFull: "TKR A", jurusanSingkat: "TKR", jurusanAngka: "A"}
+ * "XI Teknik Kendaraan Ringan B" -> {tingkat: "XI", jurusanFull: "Teknik Kendaraan Ringan B", jurusanSingkat: "TKR", jurusanAngka: "B"}
+ */
+function parseKelasForFilter(kelas) {
+    if (!kelas) return null;
+    
+    const kelasUpper = kelas.toUpperCase().trim();
+    let tingkat = '', jurusanFull = '';
+    
+    // Extract tingkat (X, XI, XII)
+    const tingkatMatch = kelasUpper.match(/^(X|XI|XII)\s+/);
+    if (tingkatMatch) {
+        tingkat = tingkatMatch[1];
+        jurusanFull = kelasUpper.substring(tingkatMatch[0].length).trim();
+    } else {
+        return null;
+    }
+    
+    // Extract jurusan angka (A, B, C, etc)
+    const angkaMatch = jurusanFull.match(/([A-Z])$/);
+    const jurusanAngka = angkaMatch ? angkaMatch[1] : '';
+    
+    // Try to identify jurusan singkat
+    let jurusanSingkat = '';
+    if (jurusanFull.includes('TKR') || jurusanFull.includes('TEKNIK KENDARAAN RINGAN')) {
+        jurusanSingkat = 'TKR';
+    } else if (jurusanFull.includes('TITL') || jurusanFull.includes('TEKNIK INSTALASI TENAGA LISTRIK')) {
+        jurusanSingkat = 'TITL';
+    } else if (jurusanFull.includes('TKP') || jurusanFull.includes('TEKNIK KONSTRUKSI PERMESINAN')) {
+        jurusanSingkat = 'TKP';
+    } else if (jurusanFull.includes('ATP') || jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN')) {
+        jurusanSingkat = 'ATP';
+    } else if (jurusanFull.includes('PERHOTELAN')) {
+        jurusanSingkat = 'H';
+    }
+    
+    return {
+        tingkat,
+        jurusanFull,
+        jurusanSingkat,
+        jurusanAngka
+    };
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadStudents();
@@ -584,39 +631,46 @@ function initPrintQRModal() {
 function generateQRPrint(tingkat, jurusan, format) {
     showLoading('Membuat halaman cetak...');
     
+    console.log('=== FILTER DEBUG ===');
+    console.log('User selected: Tingkat=' + tingkat + ', Jurusan=' + jurusan);
+    console.log('Total allStudents:', allStudents.length);
+    
     // Filter students
     let studentsForPrint = allStudents;
     
     if (tingkat && jurusan) {
-        // Extract singkat dari jurusan (e.g., "TKR" dari "TKR A")
-        const jurusanSingkat = jurusan.split(' ')[0]; // "TKR A" -> "TKR"
-        const namaLengkap = JURUSAN_NAMA_LENGKAP[jurusanSingkat] || jurusan;
+        const jurusanParts = jurusan.split(' ');
+        const filterSingkat = jurusanParts[0];
+        const filterAngka = jurusanParts[1] || '';
         
-        console.log(`Filter: Tingkat=${tingkat}, Jurusan=${jurusan} (singkat=${jurusanSingkat})`);
+        console.log('Filter: Tingkat=' + tingkat + ', Singkat=' + filterSingkat + ', Angka=' + filterAngka);
         
-        // Filter dengan strict matching - HANYA tingkat dan jurusan yang dipilih
         studentsForPrint = allStudents.filter(s => {
-            if (!s.kelas) return false;
-            
-            const kelasUpper = s.kelas.toUpperCase();
-            const tingkatMatch = kelasUpper.includes(tingkat.toUpperCase());
-            
-            // Extract nomor dari jurusan (A, B, C)
-            const jurusanAngka = jurusan.split(' ')[1]; // "TKR A" -> "A"
-            
-            // Match BOTH singkat dan jurusan angka
-            const jurusanMatch = (kelasUpper.includes(jurusanSingkat.toUpperCase()) || 
-                                 kelasUpper.includes(namaLengkap.toUpperCase())) &&
-                                kelasUpper.includes(jurusanAngka);
-            
-            if (tingkatMatch && jurusanMatch) {
-                console.log(`✓ Match: ${s.nama} (${s.kelas})`);
+            if (!s.kelas) {
+                console.log(`✗ ${s.nama}: no kelas`);
+                return false;
             }
             
-            return tingkatMatch && jurusanMatch;
+            const parsed = parseKelasForFilter(s.kelas);
+            if (!parsed) {
+                console.log(`✗ ${s.nama}: could not parse "${s.kelas}"`);
+                return false;
+            }
+            
+            const tingkatMatch = parsed.tingkat === tingkat;
+            const singkatMatch = parsed.jurusanSingkat === filterSingkat;
+            const angkaMatch = parsed.jurusanAngka === filterAngka;
+            
+            const matches = tingkatMatch && singkatMatch && angkaMatch;
+            
+            if (matches) {
+                console.log(`✓ ${s.nama}: Tingkat=${parsed.tingkat}, Singkat=${parsed.jurusanSingkat}, Angka=${parsed.jurusanAngka}`);
+            }
+            
+            return matches;
         });
         
-        console.log('Filtered students count:', studentsForPrint.length);
+        console.log('Filtered count:', studentsForPrint.length);
     }
     
     if (studentsForPrint.length === 0) {
@@ -708,160 +762,110 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             return;
         }
         
-        let htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Cetak QR Code</title>
-                <style>
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    html, body {
-                        width: 100%;
-                        height: 100%;
-                    }
-                    body {
-                        font-family: Arial, sans-serif;
-                        padding: 12px;
-                        background: white;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 15px;
-                        border-bottom: 2px solid #7C3AED;
-                        padding-bottom: 8px;
-                    }
-                    .header h2 {
-                        color: #7C3AED;
-                        margin-bottom: 3px;
-                        font-size: 14px;
-                    }
-                    .header p {
-                        color: #666;
-                        font-size: 10px;
-                        margin: 2px 0;
-                    }
-                    .qr-container {
-                        display: grid;
-                        grid-template-columns: repeat(4, 1fr);
-                        gap: 10px;
-                        margin: 0;
-                    }
-                    .qr-card {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: center;
-                        break-inside: avoid;
-                        page-break-inside: avoid;
-                        display: flex;
-                        flex-direction: column;
-                        background: white;
-                    }
-                    .qr-image-container {
-                        width: 100%;
-                        height: 120px;
-                        margin-bottom: 6px;
-                        border: 1px solid #eee;
-                        padding: 3px;
-                        background: white;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-                    .qr-image-container img {
-                        max-width: 100%;
-                        max-height: 100%;
-                        display: block;
-                    }
-                    .qr-image-container.empty {
-                        background: #f5f5f5;
-                        color: #ccc;
-                        font-size: 12px;
-                    }
-                    .qr-text h5 {
-                        font-size: 9px;
-                        margin: 4px 0 2px 0;
-                        font-weight: bold;
-                        line-height: 1.2;
-                        word-break: break-word;
-                    }
-                    .qr-text p {
-                        font-size: 7px;
-                        margin: 1px 0;
-                        color: #555;
-                    }
-                    @media print {
-                        body {
-                            padding: 5px;
-                            margin: 0;
-                        }
-                        .qr-container {
-                            gap: 8px;
-                        }
-                        .qr-card {
-                            padding: 6px;
-                        }
-                        .qr-image-container {
-                            height: 110px;
-                            margin-bottom: 4px;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h2>QR Code Siswa</h2>
-                    <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
-                    ${tingkat ? `<p>Tingkat ${tingkat} - ${jurusan}</p>` : ''}
-                </div>
-                <div class="qr-container">
-        `;
-        
-        // Add QR codes
-        qrCodes.forEach((qr, idx) => {
-            if (qr.qrImage && qr.qrImage.length > 10) {
-                htmlContent += `
-                    <div class="qr-card">
-                        <div class="qr-image-container">
-                            <img src="${qr.qrImage}" alt="QR ${idx}">
-                        </div>
-                        <div class="qr-text">
-                            <h5>${qr.nama}</h5>
-                            <p>NISN: ${qr.nisn}</p>
-                            <p>${qr.tingkat} ${qr.jurusan}</p>
-                        </div>
+        let html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Siswa - ${tingkat} ${jurusan}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: white; }
+        .page { page-break-after: always; padding: 10mm; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 15mm; 
+            border-bottom: 2px solid #7C3AED; 
+            padding-bottom: 8mm;
+        }
+        .header h1 { color: #7C3AED; font-size: 18px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 11px; margin: 3px 0; }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10mm;
+        }
+        .card { 
+            border: 1px solid #ddd; 
+            padding: 8mm;
+            text-align: center;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .card-qr {
+            width: 100%;
+            height: 100mm;
+            border: 1px solid #eee;
+            margin-bottom: 5mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+        .card-qr img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .card-text h3 { font-size: 9px; margin-bottom: 3px; font-weight: bold; }
+        .card-text p { font-size: 8px; margin: 1px 0; color: #555; }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .page { margin: 0; padding: 5mm; page-break-after: always; }
+        }
+    </style>
+</head>
+<body>`;
+
+        // Group QR codes into pages (20 per page = 4 cols x 5 rows)
+        const itemsPerPage = 20;
+        for (let pageIdx = 0; pageIdx < Math.ceil(qrCodes.length / itemsPerPage); pageIdx++) {
+            html += '<div class="page">';
+            
+            // Add header
+            if (pageIdx === 0) {
+                html += `
+                    <div class="header">
+                        <h1>QR Code Siswa</h1>
+                        <p>Absensi Jama'ah SMK Negeri 1 Sangasanga</p>
+                        <p>Tingkat ${tingkat} - ${jurusan}</p>
                     </div>
                 `;
-            } else {
-                htmlContent += `
-                    <div class="qr-card">
-                        <div class="qr-image-container empty">QR Error</div>
-                        <div class="qr-text">
-                            <h5>${qr.nama}</h5>
+            }
+            
+            html += '<div class="grid">';
+            
+            // Add cards for this page
+            const startIdx = pageIdx * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, qrCodes.length);
+            
+            for (let i = startIdx; i < endIdx; i++) {
+                const qr = qrCodes[i];
+                const qrImg = qr.qrImage || '';
+                
+                html += `
+                    <div class="card">
+                        <div class="card-qr">
+                            ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;">QR Error</div>'}
+                        </div>
+                        <div class="card-text">
+                            <h3>${qr.nama}</h3>
                             <p>NISN: ${qr.nisn}</p>
                             <p>${qr.tingkat} ${qr.jurusan}</p>
                         </div>
                     </div>
                 `;
             }
-        });
+            
+            html += '</div></div>'; // Close grid and page
+        }
         
-        htmlContent += `
-                </div>
-            </body>
-            </html>
-        `;
+        html += '</body></html>';
         
-        printWindow.document.write(htmlContent);
+        printWindow.document.write(html);
         printWindow.document.close();
         
         Swal.close();
         
-        // Wait for content to load then print
+        // Auto-focus and print
         setTimeout(() => {
             printWindow.focus();
             printWindow.print();
