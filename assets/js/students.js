@@ -297,6 +297,10 @@ function initAddButton() {
         document.getElementById('modalTitle').textContent = 'Tambah Siswa';
         document.getElementById('studentForm').reset();
         document.getElementById('studentId').value = '';
+        
+        // Clear jurusan dropdown
+        document.getElementById('jurusan').innerHTML = '<option value="">Pilih Jurusan...</option>';
+        
         const modal = new bootstrap.Modal(document.getElementById('studentModal'));
         modal.show();
     });
@@ -320,10 +324,39 @@ async function editStudent(id) {
         document.getElementById('nisn').value = student.nisn;
         document.getElementById('nama').value = student.nama;
         document.getElementById('jenisKelamin').value = student.jenisKelamin;
-        document.getElementById('kelas').value = student.kelas || '';
         document.getElementById('alamat').value = student.alamat || '';
-        document.getElementById('noHp').value = student.noHp || '';
         document.getElementById('status').value = student.status;
+        
+        // Parse kelas into tingkat and jurusan
+        const parsed = parseKelasForFilter(student.kelas);
+        if (parsed && parsed.tingkat) {
+            // Set tingkat
+            document.getElementById('tingkat').value = parsed.tingkat;
+            
+            // Trigger change to populate jurusan options
+            const event = new Event('change');
+            document.getElementById('tingkat').dispatchEvent(event);
+            
+            // Set jurusan after options are populated
+            setTimeout(() => {
+                // Find matching jurusan option
+                const jurusanSelect = document.getElementById('jurusan');
+                const options = Array.from(jurusanSelect.options);
+                
+                // Try to match with parsed singkat + angka
+                let matchValue = '';
+                if (parsed.jurusanSingkat && parsed.jurusanAngka) {
+                    matchValue = `${parsed.jurusanSingkat} ${parsed.jurusanAngka}`;
+                } else if (parsed.jurusanSingkat) {
+                    matchValue = parsed.jurusanSingkat;
+                }
+                
+                const matchedOption = options.find(opt => opt.value === matchValue);
+                if (matchedOption) {
+                    jurusanSelect.value = matchValue;
+                }
+            }, 100);
+        }
         
         const modal = new bootstrap.Modal(document.getElementById('studentModal'));
         modal.show();
@@ -374,17 +407,44 @@ async function deleteStudent(id, nama) {
  * Initialize form submission
  */
 function initForm() {
+    // Handle tingkat change to populate jurusan
+    document.getElementById('tingkat').addEventListener('change', (e) => {
+        const tingkat = e.target.value;
+        const jurusanSelect = document.getElementById('jurusan');
+        jurusanSelect.innerHTML = '<option value="">Pilih Jurusan...</option>';
+        
+        if (tingkat && JURUSAN_OPTIONS[tingkat]) {
+            JURUSAN_OPTIONS[tingkat].forEach(jurusan => {
+                const option = document.createElement('option');
+                option.value = jurusan;
+                option.textContent = jurusan;
+                jurusanSelect.appendChild(option);
+            });
+        }
+    });
+    
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const id = document.getElementById('studentId').value;
+        const tingkat = document.getElementById('tingkat').value;
+        const jurusan = document.getElementById('jurusan').value;
+        
+        // Combine tingkat + jurusan into kelas
+        let kelas = '-';
+        if (tingkat && jurusan) {
+            kelas = `${tingkat} ${jurusan}`;
+        } else if (tingkat) {
+            kelas = tingkat;
+        }
+        
         const studentData = {
             nisn: document.getElementById('nisn').value,
             nama: document.getElementById('nama').value,
             jenisKelamin: document.getElementById('jenisKelamin').value,
-            kelas: document.getElementById('kelas').value || '-',
+            kelas: kelas,
             alamat: document.getElementById('alamat').value,
-            noHp: document.getElementById('noHp').value,
+            noHp: '', // Remove noHp field
             status: document.getElementById('status').value,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
