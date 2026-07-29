@@ -12,9 +12,9 @@ let filteredStudents = [];
 
 // Jurusan options dan mapping ke nama lengkap
 const JURUSAN_OPTIONS = {
-    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
-    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H'],
-    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATP', 'H']
+    'X': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP'],
+    'XI': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP'],
+    'XII': ['TKR A', 'TKR B', 'TKR C', 'TITL A', 'TITL B', 'TKP', 'ATPH', 'ATP']
 };
 
 // Mapping singkat ke nama lengkap jurusan
@@ -23,6 +23,7 @@ const JURUSAN_NAMA_LENGKAP = {
     'TITL': 'Teknik Instalasi Tenaga Listrik',
     'TKP': 'Teknik Konstruksi Permesinan',
     'ATP': 'Agribisnis Tanaman Pangan',
+    'ATPH': 'Agribisnis Tanaman Pangan dan Hortikultura',
     'H': 'Perhotelan'
 };
 
@@ -59,9 +60,11 @@ function parseKelasForFilter(kelas) {
         jurusanSingkat = 'TITL';
     } else if (jurusanFull.includes('TKP') || jurusanFull.includes('TEKNIK KONSTRUKSI PERMESINAN')) {
         jurusanSingkat = 'TKP';
+    } else if (jurusanFull.includes('ATPH') || jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA')) {
+        jurusanSingkat = 'ATPH';
     } else if (jurusanFull.includes('ATP') || jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN')) {
         jurusanSingkat = 'ATP';
-    } else if (jurusanFull.includes('PERHOTELAN')) {
+    } else if (jurusanFull.includes('PERHOTELAN') || jurusanFull.includes('H ')) {
         jurusanSingkat = 'H';
     }
     
