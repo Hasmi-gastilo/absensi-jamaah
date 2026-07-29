@@ -288,6 +288,7 @@ body {
     margin: 0 auto 15px;
     position: relative;
     animation: sidebarLogoGlow 3s ease-in-out infinite;
+    isolation: isolate;
 }
 
 .sidebar-header .logo-container-sidebar::before {
@@ -300,13 +301,14 @@ body {
 }
 
 .sidebar-logo {
-    width: 75px;
-    height: 75px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4))
-            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 3px 10px rgba(255, 255, 255, 0.3));
     position: relative;
     z-index: 1;
+    /* Hilangkan background putih pada PNG */
+    mix-blend-mode: screen;
 }
 
 @keyframes sidebarLogoGlow {
