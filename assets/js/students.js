@@ -60,13 +60,18 @@ function parseKelasForFilter(kelas) {
         jurusanSingkat = 'TITL';
     } else if (jurusanFull.includes('TKP') || jurusanFull.includes('TEKNIK KONSTRUKSI PERMESINAN')) {
         jurusanSingkat = 'TKP';
-    } else if (jurusanFull.includes('ATPH') || jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA')) {
+    } else if (jurusanFull.includes('ATPH') || 
+               jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN DAN HORTIKULTURA') ||
+               jurusanFull.includes('TANAMAN PANGAN DAN HORTIKULTURA')) {
         jurusanSingkat = 'ATPH';
-    } else if (jurusanFull.includes('ATP') || jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN')) {
+    } else if (jurusanFull.includes('ATP') || 
+               jurusanFull.includes('AGRIBISNIS TANAMAN PANGAN')) {
         jurusanSingkat = 'ATP';
     } else if (jurusanFull.includes('PERHOTELAN') || jurusanFull.includes('H ')) {
         jurusanSingkat = 'H';
     }
+    
+    console.log(`Parse: "${kelas}" -> Tingkat=${tingkat}, Singkat=${jurusanSingkat}, Angka=${jurusanAngka}, Full=${jurusanFull}`);
     
     return {
         tingkat,
@@ -662,12 +667,15 @@ function generateQRPrint(tingkat, jurusan, format) {
             
             const tingkatMatch = parsed.tingkat === tingkat;
             const singkatMatch = parsed.jurusanSingkat === filterSingkat;
-            const angkaMatch = parsed.jurusanAngka === filterAngka;
+            
+            // If filter has angka (A, B, C), match with angka
+            // If filter has no angka (TKP, ATPH, ATP, H), match only singkat
+            const angkaMatch = filterAngka === '' ? true : (parsed.jurusanAngka === filterAngka);
             
             const matches = tingkatMatch && singkatMatch && angkaMatch;
             
             if (matches) {
-                console.log(`✓ ${s.nama}: Tingkat=${parsed.tingkat}, Singkat=${parsed.jurusanSingkat}, Angka=${parsed.jurusanAngka}`);
+                console.log(`✓ ${s.nama}: "${s.kelas}" -> Tingkat=${parsed.tingkat}, Singkat=${parsed.jurusanSingkat}, Angka=${parsed.jurusanAngka}`);
             }
             
             return matches;
