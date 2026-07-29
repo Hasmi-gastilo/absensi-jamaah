@@ -156,6 +156,25 @@ async function generateReport() {
 }
 
 /**
+ * Parse kelas menjadi tingkat dan jurusan
+ */
+function parseKelas(kelas) {
+    if (!kelas || kelas === '-') {
+        return { tingkat: '-', jurusan: '-' };
+    }
+    
+    // Format: "XI TKR A" atau "X TITL B"
+    const parts = kelas.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        const tingkat = parts[0];
+        const jurusan = parts.slice(1).join(' ');
+        return { tingkat, jurusan };
+    }
+    
+    return { tingkat: kelas, jurusan: '-' };
+}
+
+/**
  * Display report in table
  */
 function displayReport() {
@@ -163,18 +182,21 @@ function displayReport() {
     tbody.innerHTML = '';
     
     if (reportData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Tidak ada data untuk periode yang dipilih</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Tidak ada data untuk periode yang dipilih</td></tr>';
         return;
     }
     
     reportData.forEach((data, index) => {
+        const { tingkat, jurusan } = parseKelas(data.kelas);
+        
         const row = `
             <tr>
                 <td>${index + 1}</td>
                 <td>${data.tanggal}</td>
                 <td>${data.nisn}</td>
                 <td>${data.nama}</td>
-                <td>${data.kelas}</td>
+                <td>${tingkat}</td>
+                <td>${jurusan}</td>
                 <td>${data.jenisAbsensi}</td>
                 <td>${data.jam}</td>
                 <td><span class="badge ${data.statusWaktu === 'Tepat Waktu' ? 'badge-success' : 'badge-warning'}">${data.statusWaktu}</span></td>
@@ -203,16 +225,21 @@ function exportToExcel() {
     }
     
     try {
-        const excelData = reportData.map((data, index) => ({
-            'No': index + 1,
-            'Tanggal': data.tanggal,
-            'NISN': data.nisn,
-            'Nama': data.nama,
-            'Kelas': data.kelas,
-            'Jenis Absensi': data.jenisAbsensi,
-            'Jam': data.jam,
-            'Status': data.statusWaktu
-        }));
+        const excelData = reportData.map((data, index) => {
+            const { tingkat, jurusan } = parseKelas(data.kelas);
+            
+            return {
+                'No': index + 1,
+                'Tanggal': data.tanggal,
+                'NISN': data.nisn,
+                'Nama': data.nama,
+                'Tingkat': tingkat,
+                'Jurusan': jurusan,
+                'Jenis Absensi': data.jenisAbsensi,
+                'Jam': data.jam,
+                'Status': data.statusWaktu
+            };
+        });
         
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
@@ -262,20 +289,25 @@ function exportToPDF() {
         doc.text(filterText, 14, 30);
         
         // Table
-        const tableData = reportData.map((data, index) => [
-            index + 1,
-            data.tanggal,
-            data.nisn,
-            data.nama,
-            data.kelas,
-            data.jenisAbsensi,
-            data.jam,
-            data.statusWaktu
-        ]);
+        const tableData = reportData.map((data, index) => {
+            const { tingkat, jurusan } = parseKelas(data.kelas);
+            
+            return [
+                index + 1,
+                data.tanggal,
+                data.nisn,
+                data.nama,
+                tingkat,
+                jurusan,
+                data.jenisAbsensi,
+                data.jam,
+                data.statusWaktu
+            ];
+        });
         
         doc.autoTable({
             startY: 35,
-            head: [['No', 'Tanggal', 'NISN', 'Nama', 'Kelas', 'Jenis', 'Jam', 'Status']],
+            head: [['No', 'Tanggal', 'NISN', 'Nama', 'Tingkat', 'Jurusan', 'Jenis', 'Jam', 'Status']],
             body: tableData,
             styles: { fontSize: 8 },
             headStyles: { fillColor: [124, 58, 237] }
