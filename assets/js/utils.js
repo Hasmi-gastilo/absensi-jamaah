@@ -122,6 +122,28 @@ function initSidebarToggle() {
     if (toggleBtn && sidebar) {
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('active');
+            
+            // Prevent body scroll when sidebar is open (mobile only)
+            if (sidebar.classList.contains('active')) {
+                document.body.classList.add('sidebar-open');
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.classList.remove('sidebar-open');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close sidebar when clicking outside (mobile only)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (sidebar.classList.contains('active') && 
+                    !sidebar.contains(e.target) && 
+                    !toggleBtn.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                    document.body.style.overflow = '';
+                }
+            }
         });
     }
 }

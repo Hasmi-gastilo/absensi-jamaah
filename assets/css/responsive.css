@@ -25,6 +25,15 @@
     
     .sidebar.active {
         transform: translateX(0);
+        touch-action: none;
+    }
+    
+    /* Prevent body scroll when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
     }
     
     .main-content {
