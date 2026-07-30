@@ -25,7 +25,10 @@
         <div class="login-card">
             <div class="login-header">
                 <div class="logo-container-school">
-                    <img src="assets/img/logo-smk.png" alt="Logo SMK N 1 Sangasanga" class="school-logo">
+                    <img src="assets/img/logo-smk.png" alt="Logo SMK N 1 Sangasanga" class="school-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="logo-fallback" style="display: none;">
+                        <i class="bi bi-building"></i>
+                    </div>
                 </div>
                 <h2>Absensi Jama'ah</h2>
                 <h3>SMK Negeri 1 Sangasanga</h3>
