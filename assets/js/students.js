@@ -560,9 +560,23 @@ function printQR() {
     }
     
     const dataUrl = canvas.toDataURL();
-    const printWindow = window.open('', '_blank');
     
-    printWindow.document.write(`
+    // Create iframe for printing (bypasses pop-up blocker)
+    let printFrame = document.getElementById('printFrameQR');
+    if (!printFrame) {
+        printFrame = document.createElement('iframe');
+        printFrame.id = 'printFrameQR';
+        printFrame.style.position = 'fixed';
+        printFrame.style.top = '-9999px';
+        printFrame.style.left = '-9999px';
+        printFrame.style.width = '0';
+        printFrame.style.height = '0';
+        document.body.appendChild(printFrame);
+    }
+    
+    const doc = printFrame.contentWindow.document;
+    doc.open();
+    doc.write(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -615,16 +629,13 @@ function printQR() {
             <script>
                 window.onload = function() {
                     window.print();
-                    window.onafterprint = function() {
-                        window.close();
-                    }
                 }
             <\/script>
         </body>
         </html>
     `);
     
-    printWindow.document.close();
+    doc.close();
 }
 
 /**
@@ -830,10 +841,17 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
  */
 function generatePrintPage(qrCodes, tingkat, jurusan) {
     try {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            showError('Pop-up blocked. Silakan izinkan pop-up untuk halaman ini.');
-            return;
+        // Create iframe for printing (bypasses pop-up blocker)
+        let printFrame = document.getElementById('printFrame');
+        if (!printFrame) {
+            printFrame = document.createElement('iframe');
+            printFrame.id = 'printFrame';
+            printFrame.style.position = 'fixed';
+            printFrame.style.top = '-9999px';
+            printFrame.style.left = '-9999px';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            document.body.appendChild(printFrame);
         }
         
         let html = `<!DOCTYPE html>
@@ -1019,15 +1037,17 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         
         html += '</body></html>';
         
-        printWindow.document.write(html);
-        printWindow.document.close();
+        const doc = printFrame.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
         
         Swal.close();
         
         // Auto-focus and print after images load
         setTimeout(() => {
-            printWindow.focus();
-            printWindow.print();
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
         }, 1200);
         
     } catch (error) {
