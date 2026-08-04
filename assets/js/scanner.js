@@ -42,6 +42,8 @@ async function loadTimeSettings() {
         } else {
             // Default settings
             timeSettings = {
+                subuhStart: '04:30',
+                subuhEnd: '05:30',
                 dhuhaStart: '06:30',
                 dhuhaEnd: '07:30',
                 zuhurStart: '11:30',
@@ -208,7 +210,9 @@ function determineTimeStatus(jenisAbsensi, currentTime) {
     
     let endTime;
     
-    if (jenisAbsensi === 'Sholat Dhuha') {
+    if (jenisAbsensi === 'Sholat Subuh') {
+        endTime = timeSettings.subuhEnd;
+    } else if (jenisAbsensi === 'Sholat Dhuha') {
         endTime = timeSettings.dhuhaEnd;
     } else if (jenisAbsensi === 'Sholat Zuhur') {
         endTime = timeSettings.zuhurEnd;

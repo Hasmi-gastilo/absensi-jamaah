@@ -29,6 +29,8 @@ async function loadSettings() {
         const timeDoc = await db.collection('settings').doc('time').get();
         if (timeDoc.exists) {
             const timeData = timeDoc.data();
+            document.getElementById('subuhStart').value = timeData.subuhStart || '04:30';
+            document.getElementById('subuhEnd').value = timeData.subuhEnd || '05:30';
             document.getElementById('dhuhaStart').value = timeData.dhuhaStart || '06:30';
             document.getElementById('dhuhaEnd').value = timeData.dhuhaEnd || '07:30';
             document.getElementById('zuhurStart').value = timeData.zuhurStart || '11:30';
@@ -81,6 +83,8 @@ function initTimeForm() {
         e.preventDefault();
         
         const timeData = {
+            subuhStart: document.getElementById('subuhStart').value,
+            subuhEnd: document.getElementById('subuhEnd').value,
             dhuhaStart: document.getElementById('dhuhaStart').value,
             dhuhaEnd: document.getElementById('dhuhaEnd').value,
             zuhurStart: document.getElementById('zuhurStart').value,
@@ -117,12 +121,16 @@ function initTimeForm() {
  * Validate time settings
  */
 function validateTimeSettings(timeData) {
+    const subuhStartMinutes = timeToMinutes(timeData.subuhStart);
+    const subuhEndMinutes = timeToMinutes(timeData.subuhEnd);
     const dhuhaStartMinutes = timeToMinutes(timeData.dhuhaStart);
     const dhuhaEndMinutes = timeToMinutes(timeData.dhuhaEnd);
     const zuhurStartMinutes = timeToMinutes(timeData.zuhurStart);
     const zuhurEndMinutes = timeToMinutes(timeData.zuhurEnd);
     
-    return dhuhaStartMinutes < dhuhaEndMinutes && zuhurStartMinutes < zuhurEndMinutes;
+    return subuhStartMinutes < subuhEndMinutes && 
+           dhuhaStartMinutes < dhuhaEndMinutes && 
+           zuhurStartMinutes < zuhurEndMinutes;
 }
 
 /**
