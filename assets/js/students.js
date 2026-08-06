@@ -778,14 +778,26 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
         // Generate QR codes with proper delay
         const qrCodes = [];
         
-        for (const student of students) {
+        console.log('=== BATCH QR GENERATION START ===');
+        console.log('Total students to generate:', students.length);
+        
+        for (let i = 0; i < students.length; i++) {
+            const student = students[i];
+            
+            console.log(`\n[${i + 1}/${students.length}] Generating QR for:`, {
+                nama: student.nama,
+                nisn: student.nisn,
+                kelas: student.kelas
+            });
+            
             // Create temporary div for QR generation
             const tempDiv = document.createElement('div');
             tempDiv.style.display = 'none';
+            tempDiv.id = `qr-temp-${i}-${Date.now()}`; // Unique ID
             document.body.appendChild(tempDiv);
             
-            // Generate QR Code
-            new QRCode(tempDiv, {
+            // Generate QR Code with NISN
+            const qrInstance = new QRCode(tempDiv, {
                 text: student.nisn,
                 width: 120,
                 height: 120,
@@ -793,6 +805,8 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
+            
+            console.log(`  → QR text set to: "${student.nisn}"`);
             
             // Wait for QR to render
             await new Promise(resolve => setTimeout(resolve, 150));
@@ -804,25 +818,42 @@ async function generateQRCodes(students, format, tingkat, jurusan) {
             if (canvas) {
                 try {
                     qrDataUrl = canvas.toDataURL('image/png');
-                    console.log(`✓ QR generated for ${student.nisn}`);
+                    console.log(`  ✓ QR canvas converted to image`);
                 } catch (e) {
-                    console.warn(`Canvas error for ${student.nisn}:`, e);
+                    console.error(`  ✗ Canvas error:`, e);
                 }
+            } else {
+                console.error(`  ✗ Canvas not found in tempDiv!`);
             }
             
             const { tingkat: t, jurusan: j } = parseKelas(student.kelas);
             
-            qrCodes.push({
+            const qrData = {
                 nama: student.nama,
                 nisn: student.nisn,
                 tingkat: t,
                 jurusan: j,
                 qrImage: qrDataUrl
+            };
+            
+            qrCodes.push(qrData);
+            
+            console.log(`  ✓ Added to qrCodes array:`, {
+                nama: qrData.nama,
+                nisn: qrData.nisn,
+                hasImage: qrData.qrImage.length > 0
             });
             
             // Remove temp div
             document.body.removeChild(tempDiv);
         }
+        
+        console.log('\n=== BATCH QR GENERATION COMPLETE ===');
+        console.log('Total QR codes generated:', qrCodes.length);
+        console.log('Sample check (first 3):');
+        qrCodes.slice(0, 3).forEach((qr, idx) => {
+            console.log(`  [${idx}] ${qr.nama} - NISN: ${qr.nisn}`);
+        });
         
         Swal.close();
         
@@ -1014,9 +1045,14 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             const startIdx = pageIdx * itemsPerPage;
             const endIdx = Math.min(startIdx + itemsPerPage, qrCodes.length);
             
+            console.log(`\n=== PAGE ${pageIdx + 1} HTML GENERATION ===`);
+            console.log(`Items: ${startIdx} to ${endIdx - 1}`);
+            
             for (let i = startIdx; i < endIdx; i++) {
                 const qr = qrCodes[i];
                 const qrImg = qr.qrImage || '';
+                
+                console.log(`  [${i}] Card: ${qr.nama} (NISN: ${qr.nisn})`);
                 
                 html += `
                     <div class="card">
