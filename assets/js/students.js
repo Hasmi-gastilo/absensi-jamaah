@@ -901,7 +901,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             box-sizing: border-box; 
         }
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: 'Arial', sans-serif; 
             background: white;
             width: 210mm;
             margin: 0 auto;
@@ -939,53 +939,129 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             gap: 4mm;
             margin: 0;
         }
+        
+        /* Card dengan border warna sesuai jurusan */
         .card { 
-            border: 1px solid #bbb; 
-            padding: 2.5mm;
+            padding: 3mm;
             text-align: center;
             page-break-inside: avoid;
             break-inside: avoid;
-            background: white;
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
             height: 52mm;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            position: relative;
+            overflow: hidden;
+            border-radius: 3mm;
         }
+        
+        /* Border warna jurusan */
+        .card-tkr { 
+            border: 3px solid #2563EB; 
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+        }
+        .card-titl { 
+            border: 3px solid #DC2626;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+        }
+        .card-atph { 
+            border: 3px solid #16A34A;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
+        }
+        .card-tkp { 
+            border: 3px solid #F59E0B;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+        
+        /* Logo pojok kanan atas */
+        .card-logo {
+            position: absolute;
+            top: 2mm;
+            right: 2mm;
+            width: 8mm;
+            height: 8mm;
+            opacity: 0.15;
+            z-index: 1;
+        }
+        
+        /* Background pattern */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -10mm;
+            right: -10mm;
+            width: 20mm;
+            height: 20mm;
+            border-radius: 50%;
+            opacity: 0.05;
+            z-index: 0;
+        }
+        
+        .card-tkr::before { background: #2563EB; }
+        .card-titl::before { background: #DC2626; }
+        .card-atph::before { background: #16A34A; }
+        .card-tkp::before { background: #F59E0B; }
+        
         .card-qr {
             width: 100%;
-            height: 38mm;
+            height: 35mm;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 2mm;
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .card-qr img {
             max-width: 100%;
             max-height: 100%;
             width: auto;
             height: auto;
+            border-radius: 2mm;
         }
         .card-text {
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .card-text h3 { 
-            font-size: 7.5px; 
-            margin-bottom: 1.5px; 
+            font-size: 8px; 
+            margin-bottom: 2px; 
             font-weight: bold;
             line-height: 1.2;
+            color: #111;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
+        
+        /* Badge jurusan dengan warna */
+        .badge {
+            display: inline-block;
+            padding: 1.5mm 3mm;
+            border-radius: 10px;
+            font-size: 7px;
+            font-weight: bold;
+            color: white;
+            margin-top: 1mm;
+            letter-spacing: 0.3px;
+        }
+        .badge-tkr { background: #2563EB; }
+        .badge-titl { background: #DC2626; }
+        .badge-atph { background: #16A34A; }
+        .badge-tkp { background: #F59E0B; }
+        
         .card-text p { 
             font-size: 6.5px; 
             margin: 0.5px 0; 
-            color: #555;
+            color: #666;
             line-height: 1.3;
         }
+        
         @media print {
             html, body {
                 width: 210mm;
@@ -1054,15 +1130,39 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 
                 console.log(`  [${i}] Card: ${qr.nama} (NISN: ${qr.nisn})`);
                 
+                // Determine color class based on jurusan
+                let colorClass = 'card-tkr'; // default
+                let badgeClass = 'badge-tkr';
+                const jurusanUpper = qr.jurusan.toUpperCase();
+                
+                if (jurusanUpper.includes('TKR') || jurusanUpper.includes('KENDARAAN')) {
+                    colorClass = 'card-tkr';
+                    badgeClass = 'badge-tkr';
+                } else if (jurusanUpper.includes('TITL') || jurusanUpper.includes('LISTRIK')) {
+                    colorClass = 'card-titl';
+                    badgeClass = 'badge-titl';
+                } else if (jurusanUpper.includes('ATPH') || jurusanUpper.includes('TANAMAN') || jurusanUpper.includes('HORTIKULTURA')) {
+                    colorClass = 'card-atph';
+                    badgeClass = 'badge-atph';
+                } else if (jurusanUpper.includes('TKP') || jurusanUpper.includes('KONSTRUKSI') || jurusanUpper.includes('PERUMAHAN')) {
+                    colorClass = 'card-tkp';
+                    badgeClass = 'badge-tkp';
+                }
+                
                 html += `
-                    <div class="card">
+                    <div class="card ${colorClass}">
+                        <div class="card-logo">
+                            <svg viewBox="0 0 100 100" fill="currentColor">
+                                <polygon points="50,10 10,90 90,90" />
+                            </svg>
+                        </div>
                         <div class="card-qr">
                             ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;font-size:9px;">QR Error</div>'}
                         </div>
                         <div class="card-text">
                             <h3>${qr.nama}</h3>
-                            <p>NISN: ${qr.nisn}</p>
-                            <p>${qr.tingkat} ${qr.jurusan}</p>
+                            <p style="font-size:6px;color:#999;">NISN: ${qr.nisn}</p>
+                            <span class="badge ${badgeClass}">${qr.tingkat} ${qr.jurusan}</span>
                         </div>
                     </div>
                 `;
