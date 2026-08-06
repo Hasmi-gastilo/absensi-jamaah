@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadTimeSettings();
     await loadTodayHistory();
     initScanner();
+    initManualInput();
 });
 
 /**
@@ -66,12 +67,60 @@ function initScanner() {
         try {
             html5QrCode = new Html5Qrcode("reader");
             
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
+            // Get available cameras
+            const cameras = await Html5Qrcode.getCameras();
+            console.log('Available cameras:', cameras);
+            
+            // Prefer back camera (especially important for iOS)
+            let cameraId = { facingMode: "environment" };
+            
+            if (cameras && cameras.length > 0) {
+                // Find back camera (usually has "back" or "rear" in label)
+                const backCamera = cameras.find(cam => 
+                    cam.label.toLowerCase().includes('back') || 
+                    cam.label.toLowerCase().includes('rear') ||
+                    cam.label.toLowerCase().includes('traseira')
+                );
+                
+                if (backCamera) {
+                    cameraId = backCamera.id;
+                    console.log('Using back camera:', backCamera.label);
+                } else {
+                    // Use last camera (usually back camera on mobile)
+                    cameraId = cameras[cameras.length - 1].id;
+                    console.log('Using camera:', cameras[cameras.length - 1].label);
+                }
+            }
+            
+            // Optimized config for iOS and Android
+            const config = {
+                fps: 30, // Increased FPS for faster detection
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Make scan box responsive and larger for iOS
+                    let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    let qrboxSize = Math.floor(minEdge * 0.75); // 75% of smaller dimension
+                    return {
+                        width: qrboxSize,
+                        height: qrboxSize
+                    };
                 },
+                aspectRatio: 1.0,
+                // iOS Safari needs these settings
+                videoConstraints: {
+                    facingMode: "environment",
+                    advanced: [
+                        { focusMode: "continuous" },
+                        { zoom: 1.0 }
+                    ]
+                },
+                // Better scan frequency
+                disableFlip: false,
+                rememberLastUsedCamera: true
+            };
+            
+            await html5QrCode.start(
+                cameraId,
+                config,
                 onScanSuccess,
                 onScanError
             );
@@ -80,16 +129,43 @@ function initScanner() {
             btnStart.style.display = 'none';
             btnStop.style.display = 'block';
             
+            console.log('Scanner started successfully');
+            
         } catch (error) {
             console.error('Error starting scanner:', error);
-            showError('Gagal memulai scanner. Pastikan kamera diizinkan.');
+            
+            // Show detailed error for iOS users
+            let errorMsg = 'Gagal memulai scanner. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMsg += 'Kamera diblokir. Buka Settings > Safari > Camera dan izinkan akses kamera.';
+            } else if (error.name === 'NotFoundError') {
+                errorMsg += 'Kamera tidak ditemukan.';
+            } else if (error.name === 'NotReadableError') {
+                errorMsg += 'Kamera sedang digunakan aplikasi lain.';
+            } else {
+                errorMsg += 'Pastikan kamera diizinkan dan coba lagi.';
+            }
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Memulai Scanner',
+                html: `<p>${errorMsg}</p><p style="font-size:12px;color:#666;margin-top:10px;">Error: ${error.message}</p>`,
+                confirmButtonColor: '#EF4444'
+            });
         }
     });
     
     btnStop.addEventListener('click', async () => {
         if (html5QrCode) {
-            await html5QrCode.stop();
-            html5QrCode = null;
+            try {
+                await html5QrCode.stop();
+                html5QrCode.clear();
+                html5QrCode = null;
+            } catch (error) {
+                console.error('Error stopping scanner:', error);
+            }
+            
             isScanning = false;
             btnStart.style.display = 'block';
             btnStop.style.display = 'none';
@@ -218,7 +294,41 @@ async function onScanSuccess(decodedText) {
  * On scan error (ignore)
  */
 function onScanError(error) {
-    // Ignore scan errors
+    // Ignore scan errors (too noisy in console)
+}
+
+/**
+ * Initialize manual input button
+ */
+function initManualInput() {
+    const btnManual = document.getElementById('btnManualInput');
+    if (btnManual) {
+        btnManual.addEventListener('click', async () => {
+            const { value: nisn } = await Swal.fire({
+                title: 'Input NISN Manual',
+                input: 'text',
+                inputLabel: 'Masukkan NISN Siswa',
+                inputPlaceholder: 'Contoh: 0051234567',
+                showCancelButton: true,
+                confirmButtonText: 'Proses',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#7C3AED',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'NISN tidak boleh kosong!';
+                    }
+                    if (value.length < 6) {
+                        return 'NISN minimal 6 digit!';
+                    }
+                }
+            });
+            
+            if (nisn) {
+                // Process like scan
+                await onScanSuccess(nisn);
+            }
+        });
+    }
 }
 
 /**
