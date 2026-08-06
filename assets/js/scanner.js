@@ -110,13 +110,23 @@ async function onScanSuccess(decodedText) {
         const nisn = decodedText.trim();
         const jenisAbsensi = document.getElementById('jenisAbsensi').value;
         
+        // DEBUG: Log QR scan result
+        console.log('=== QR SCAN DEBUG ===');
+        console.log('Decoded QR Text:', decodedText);
+        console.log('NISN (after trim):', nisn);
+        console.log('Jenis Absensi:', jenisAbsensi);
+        
         // Find student
         const studentSnapshot = await db.collection('students')
             .where('nisn', '==', nisn)
             .where('status', '==', 'Aktif')
             .get();
         
+        // DEBUG: Log query result
+        console.log('Query Result Size:', studentSnapshot.size);
+        
         if (studentSnapshot.empty) {
+            console.log('ERROR: No student found with NISN:', nisn);
             Swal.fire({
                 icon: 'error',
                 title: 'Siswa Tidak Ditemukan',
@@ -129,6 +139,15 @@ async function onScanSuccess(decodedText) {
         
         const studentDoc = studentSnapshot.docs[0];
         const studentData = studentDoc.data();
+        
+        // DEBUG: Log found student
+        console.log('Found Student:', {
+            id: studentDoc.id,
+            nisn: studentData.nisn,
+            nama: studentData.nama,
+            kelas: studentData.kelas
+        });
+        console.log('===================');
         
         // Check duplicate
         const todayDate = getTodayDate();
