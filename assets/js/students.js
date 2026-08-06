@@ -901,7 +901,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             box-sizing: border-box; 
         }
         body { 
-            font-family: 'Arial', sans-serif; 
+            font-family: Arial, sans-serif; 
             background: white;
             width: 210mm;
             margin: 0 auto;
@@ -935,133 +935,93 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         }
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 4mm;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 5mm;
             margin: 0;
         }
-        
-        /* Card dengan border warna sesuai jurusan */
         .card { 
             padding: 3mm;
             text-align: center;
             page-break-inside: avoid;
             break-inside: avoid;
-            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-            height: 52mm;
+            background: white;
+            height: 75mm;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             position: relative;
+            border: 4px solid #bbb;
+            border-radius: 4mm;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
-            border-radius: 3mm;
         }
-        
-        /* Border warna jurusan */
-        .card-tkr { 
-            border: 3px solid #2563EB; 
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+        .card.border-tkr { border-color: #3B82F6; }
+        .card.border-titl { border-color: #EF4444; }
+        .card.border-atph { border-color: #10B981; }
+        .card.border-tkp { border-color: #F59E0B; }
+        .card-header {
+            width: 100%;
+            padding: 2mm;
+            border-bottom: 2px solid #E5E7EB;
+            margin-bottom: 2mm;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 2mm;
         }
-        .card-titl { 
-            border: 3px solid #DC2626;
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+        .card-header img {
+            height: 10mm;
+            width: auto;
+            flex-shrink: 0;
         }
-        .card-atph { 
-            border: 3px solid #16A34A;
-            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
+        .card-header-title {
+            font-size: 8px;
+            font-weight: bold;
+            color: #374151;
+            line-height: 1.3;
+            text-align: left;
+            flex: 1;
         }
-        .card-tkp { 
-            border: 3px solid #F59E0B;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
-        }
-        
-        /* Logo pojok kanan atas */
-        .card-logo {
-            position: absolute;
-            top: 2mm;
-            right: 2mm;
-            width: 8mm;
-            height: 8mm;
-            opacity: 0.15;
-            z-index: 1;
-        }
-        
-        /* Background pattern */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -10mm;
-            right: -10mm;
-            width: 20mm;
-            height: 20mm;
-            border-radius: 50%;
-            opacity: 0.05;
-            z-index: 0;
-        }
-        
-        .card-tkr::before { background: #2563EB; }
-        .card-titl::before { background: #DC2626; }
-        .card-atph::before { background: #16A34A; }
-        .card-tkp::before { background: #F59E0B; }
-        
         .card-qr {
             width: 100%;
-            height: 35mm;
+            height: 40mm;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 2mm;
             flex-shrink: 0;
-            position: relative;
-            z-index: 2;
         }
         .card-qr img {
             max-width: 100%;
             max-height: 100%;
             width: auto;
             height: auto;
-            border-radius: 2mm;
         }
         .card-text {
             flex-shrink: 0;
-            position: relative;
-            z-index: 2;
+            padding: 1mm 2mm;
         }
         .card-text h3 { 
-            font-size: 8px; 
+            font-size: 9px; 
             margin-bottom: 2px; 
             font-weight: bold;
             line-height: 1.2;
-            color: #111;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            color: #1F2937;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
-        
-        /* Badge jurusan dengan warna */
-        .badge {
-            display: inline-block;
-            padding: 1.5mm 3mm;
-            border-radius: 10px;
-            font-size: 7px;
-            font-weight: bold;
-            color: white;
-            margin-top: 1mm;
-            letter-spacing: 0.3px;
-        }
-        .badge-tkr { background: #2563EB; }
-        .badge-titl { background: #DC2626; }
-        .badge-atph { background: #16A34A; }
-        .badge-tkp { background: #F59E0B; }
-        
         .card-text p { 
-            font-size: 6.5px; 
-            margin: 0.5px 0; 
-            color: #666;
+            font-size: 7.5px; 
+            margin: 1px 0; 
+            color: #6B7280;
             line-height: 1.3;
+            word-wrap: break-word;
         }
-        
+        .card-text .nisn {
+            font-weight: 600;
+            color: #374151;
+            font-size: 8px;
+        }
         @media print {
             html, body {
                 width: 210mm;
@@ -1077,14 +1037,14 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 min-height: 297mm;
             }
             .grid {
-                gap: 3.5mm;
+                gap: 4mm;
             }
             .card {
-                height: 50mm;
-                padding: 2mm;
+                height: 73mm;
+                padding: 2.5mm;
             }
             .card-qr {
-                height: 36mm;
+                height: 38mm;
             }
         }
     </style>
@@ -1092,15 +1052,16 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
 <body>`;
 
         // Calculate items per page
+        // Changed to 3 columns × 3 rows = 9 items per page (larger cards)
         // A4 height: 297mm - 16mm margin = 281mm
         // Header: ~20mm
         // Available: ~261mm
-        // Card height: 52mm
-        // Gap: 4mm
-        // Row height: 52mm + 4mm = 56mm
-        // Rows per page: 261mm / 56mm = 4.66 ≈ 4 rows
-        // Items per page: 4 cols x 4 rows = 16 items
-        const itemsPerPage = 16;
+        // Card height: 75mm
+        // Gap: 5mm
+        // Row height: 75mm + 5mm = 80mm
+        // Rows per page: 261mm / 80mm = 3.26 ≈ 3 rows
+        // Items per page: 3 cols x 3 rows = 9 items
+        const itemsPerPage = 9;
         const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
         
         for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
@@ -1130,39 +1091,38 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 
                 console.log(`  [${i}] Card: ${qr.nama} (NISN: ${qr.nisn})`);
                 
-                // Determine color class based on jurusan
-                let colorClass = 'card-tkr'; // default
-                let badgeClass = 'badge-tkr';
+                // Determine border color based on jurusan
+                let borderClass = '';
+                let badgeClass = '';
                 const jurusanUpper = qr.jurusan.toUpperCase();
                 
-                if (jurusanUpper.includes('TKR') || jurusanUpper.includes('KENDARAAN')) {
-                    colorClass = 'card-tkr';
+                if (jurusanUpper.includes('TKR') || jurusanUpper.includes('TEKNIK KENDARAAN')) {
+                    borderClass = 'border-tkr';
                     badgeClass = 'badge-tkr';
-                } else if (jurusanUpper.includes('TITL') || jurusanUpper.includes('LISTRIK')) {
-                    colorClass = 'card-titl';
+                } else if (jurusanUpper.includes('TITL') || jurusanUpper.includes('INSTALASI TENAGA LISTRIK')) {
+                    borderClass = 'border-titl';
                     badgeClass = 'badge-titl';
-                } else if (jurusanUpper.includes('ATPH') || jurusanUpper.includes('TANAMAN') || jurusanUpper.includes('HORTIKULTURA')) {
-                    colorClass = 'card-atph';
+                } else if (jurusanUpper.includes('ATPH') || jurusanUpper.includes('AGRIBISNIS') || jurusanUpper.includes('ATP') || jurusanUpper.includes('HORTIKULTURA')) {
+                    borderClass = 'border-atph';
                     badgeClass = 'badge-atph';
                 } else if (jurusanUpper.includes('TKP') || jurusanUpper.includes('KONSTRUKSI') || jurusanUpper.includes('PERUMAHAN')) {
-                    colorClass = 'card-tkp';
+                    borderClass = 'border-tkp';
                     badgeClass = 'badge-tkp';
                 }
                 
                 html += `
-                    <div class="card ${colorClass}">
-                        <div class="card-logo">
-                            <svg viewBox="0 0 100 100" fill="currentColor">
-                                <polygon points="50,10 10,90 90,90" />
-                            </svg>
+                    <div class="card ${borderClass}">
+                        <div class="card-header">
+                            <img src="../assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                            <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                         </div>
                         <div class="card-qr">
                             ${qrImg ? `<img src="${qrImg}" alt="QR">` : '<div style="color:#ccc;font-size:9px;">QR Error</div>'}
                         </div>
                         <div class="card-text">
                             <h3>${qr.nama}</h3>
-                            <p style="font-size:6px;color:#999;">NISN: ${qr.nisn}</p>
-                            <span class="badge ${badgeClass}">${qr.tingkat} ${qr.jurusan}</span>
+                            <p class="nisn">NISN: ${qr.nisn}</p>
+                            <p>${qr.tingkat} ${qr.jurusan}</p>
                         </div>
                     </div>
                 `;
