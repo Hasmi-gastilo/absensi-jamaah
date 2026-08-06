@@ -249,6 +249,60 @@ async function onScanSuccess(decodedText) {
         const currentTime = formatTime(now);
         const statusWaktu = determineTimeStatus(jenisAbsensi, currentTime);
         
+        // KONFIRMASI VISUAL: Tampilkan preview sebelum save
+        const confirmResult = await Swal.fire({
+            title: 'Konfirmasi Data Siswa',
+            html: `
+                <div style="text-align: left; padding: 10px;">
+                    <div style="background: #F3F4F6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin: 5px 0;"><strong>Nama:</strong> ${studentData.nama}</p>
+                        <p style="margin: 5px 0;"><strong>NISN:</strong> ${nisn}</p>
+                        <p style="margin: 5px 0;"><strong>Kelas:</strong> ${studentData.kelas}</p>
+                        <p style="margin: 5px 0;"><strong>Jenis:</strong> ${jenisAbsensi}</p>
+                        <p style="margin: 5px 0;"><strong>Status:</strong> 
+                            <span style="color: ${statusWaktu === 'Tepat Waktu' ? '#10B981' : '#F59E0B'}; font-weight: bold;">
+                                ${statusWaktu}
+                            </span>
+                        </p>
+                    </div>
+                    <p style="color: #EF4444; font-weight: bold; font-size: 14px;">
+                        ⚠️ Periksa data di atas apakah sesuai dengan QR yang di-scan!
+                    </p>
+                    <p style="color: #666; font-size: 13px; margin-top: 10px;">
+                        Jika TIDAK SESUAI, klik "Batal" dan laporkan ke admin.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '✓ Sesuai, Simpan',
+            cancelButtonText: '✗ Tidak Sesuai, Batal',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#EF4444',
+            allowOutsideClick: false,
+            customClass: {
+                popup: 'swal-wide'
+            }
+        });
+        
+        // Jika user klik BATAL
+        if (!confirmResult.isConfirmed) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Absensi Dibatalkan',
+                html: `
+                    <p>Data tidak sesuai? Segera laporkan ke admin!</p>
+                    <div style="background: #FEF3C7; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                        <p style="margin: 5px 0;"><strong>QR Code NISN:</strong> ${nisn}</p>
+                        <p style="margin: 5px 0;"><strong>Nama yang Muncul:</strong> ${studentData.nama}</p>
+                    </div>
+                `,
+                confirmButtonColor: '#7C3AED'
+            });
+            setTimeout(() => { isScanning = true; }, 2000);
+            return;
+        }
+        
         // Save attendance
         const attendanceData = {
             nisn: nisn,
