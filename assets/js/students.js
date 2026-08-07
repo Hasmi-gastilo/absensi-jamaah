@@ -574,6 +574,20 @@ function printQR() {
         document.body.appendChild(printFrame);
     }
     
+    const { tingkat, jurusan } = parseKelas(currentStudentData.kelas);
+    const jurusanUpper = jurusan.toUpperCase();
+    
+    let borderClass = '';
+    if (jurusanUpper.includes('TKR') || jurusanUpper.includes('TEKNIK KENDARAAN')) {
+        borderClass = 'border-tkr';
+    } else if (jurusanUpper.includes('TITL') || jurusanUpper.includes('INSTALASI TENAGA LISTRIK')) {
+        borderClass = 'border-titl';
+    } else if (jurusanUpper.includes('ATPH') || jurusanUpper.includes('AGRIBISNIS') || jurusanUpper.includes('ATP') || jurusanUpper.includes('HORTIKULTURA')) {
+        borderClass = 'border-atph';
+    } else if (jurusanUpper.includes('TKP') || jurusanUpper.includes('KONSTRUKSI') || jurusanUpper.includes('PERUMAHAN')) {
+        borderClass = 'border-tkp';
+    }
+    
     const doc = printFrame.contentWindow.document;
     doc.open();
     doc.write(`
@@ -582,55 +596,123 @@ function printQR() {
         <head>
             <title>Print QR Code - ${currentStudentData.nama}</title>
             <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
                 body {
                     font-family: Arial, sans-serif;
                     display: flex;
-                    flex-direction: column;
                     align-items: center;
                     justify-content: center;
                     min-height: 100vh;
-                    margin: 0;
-                    padding: 20px;
+                    background: white;
                 }
-                .qr-container {
+                .card { 
+                    width: 65mm;
+                    padding: 3mm;
                     text-align: center;
-                    border: 2px solid #7C3AED;
-                    padding: 30px;
-                    border-radius: 10px;
+                    background: white;
+                    height: 75mm;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    border: 4px solid #bbb;
+                    border-radius: 4mm;
                 }
-                h2 {
-                    color: #7C3AED;
-                    margin-bottom: 10px;
+                .card.border-tkr { border-color: #3B82F6; }
+                .card.border-titl { border-color: #EF4444; }
+                .card.border-atph { border-color: #10B981; }
+                .card.border-tkp { border-color: #F59E0B; }
+                
+                .card-header {
+                    width: 100%;
+                    padding: 2mm;
+                    border-bottom: 2px solid #E5E7EB;
+                    margin-bottom: 2mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: 2mm;
                 }
-                .info {
-                    margin: 15px 0;
-                    font-size: 16px;
+                .card-header img {
+                    height: 10mm;
+                    width: auto;
+                    flex-shrink: 0;
                 }
-                img {
-                    margin: 20px 0;
+                .card-header-title {
+                    font-size: 8px;
+                    font-weight: bold;
+                    color: #374151;
+                    line-height: 1.3;
+                    text-align: left;
+                    flex: 1;
+                }
+                .card-qr {
+                    width: 100%;
+                    height: 40mm;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 2mm;
+                    flex-shrink: 0;
+                }
+                .card-qr img {
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
+                }
+                .card-text {
+                    flex-shrink: 0;
+                    padding: 1mm 2mm;
+                }
+                .card-text h3 { 
+                    font-size: 9px; 
+                    margin-bottom: 2px; 
+                    font-weight: bold;
+                    line-height: 1.2;
+                    color: #1F2937;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .card-text p { 
+                    font-size: 7.5px; 
+                    margin: 1px 0; 
+                    color: #6B7280;
+                    line-height: 1.3;
+                    word-wrap: break-word;
+                }
+                .card-text .nisn {
+                    font-weight: 600;
+                    color: #374151;
+                    font-size: 8px;
                 }
                 @media print {
-                    body {
-                        margin: 0;
-                    }
+                    @page { size: portrait; margin: 0; }
+                    body { margin: 0; padding: 20mm; }
                 }
             </style>
         </head>
         <body>
-            <div class="qr-container">
-                <h2>${currentStudentData.nama}</h2>
-                <div class="info">NISN: ${currentStudentData.nisn}</div>
-                <div class="info">Kelas: ${currentStudentData.kelas}</div>
-                <img src="${dataUrl}" alt="QR Code">
-                <div class="info" style="margin-top: 20px; font-size: 14px; color: #666;">
-                    Absensi Jama'ah SMK Negeri 1 Sangasanga
+            <div class="card ${borderClass}">
+                <div class="card-header">
+                    <img src="../assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                    <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
+                </div>
+                <div class="card-qr">
+                    <img src="${dataUrl}" alt="QR">
+                </div>
+                <div class="card-text">
+                    <h3>${currentStudentData.nama}</h3>
+                    <p class="nisn">NISN: ${currentStudentData.nisn}</p>
+                    <p>${tingkat} ${jurusan}</p>
                 </div>
             </div>
             <script>
                 window.onload = function() {
-                    window.print();
+                    setTimeout(() => {
+                        window.print();
+                    }, 500);
                 }
-            <\/script>
+            </script>
         </body>
         </html>
     `);
