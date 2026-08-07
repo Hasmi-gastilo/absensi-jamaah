@@ -65,61 +65,34 @@ function initScanner() {
     
     btnStart.addEventListener('click', async () => {
         try {
-            html5QrCode = new Html5Qrcode("reader");
+            // Re-initialize with only QR Code support for faster processing
+            // (0 is QR_CODE in Html5QrcodeSupportedFormats)
+            html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [ 0 ] });
             
-            // Get available cameras
-            const cameras = await Html5Qrcode.getCameras();
-            console.log('Available cameras:', cameras);
-            
-            // Prefer back camera (especially important for iOS)
-            let cameraId = { facingMode: "environment" };
-            
-            if (cameras && cameras.length > 0) {
-                // Find back camera (usually has "back" or "rear" in label)
-                const backCamera = cameras.find(cam => 
-                    cam.label.toLowerCase().includes('back') || 
-                    cam.label.toLowerCase().includes('rear') ||
-                    cam.label.toLowerCase().includes('traseira')
-                );
-                
-                if (backCamera) {
-                    cameraId = backCamera.id;
-                    console.log('Using back camera:', backCamera.label);
-                } else {
-                    // Use last camera (usually back camera on mobile)
-                    cameraId = cameras[cameras.length - 1].id;
-                    console.log('Using camera:', cameras[cameras.length - 1].label);
-                }
-            }
+            // Use facingMode: environment instead of manually picking camera ID.
+            // On modern iPhones (13, 14, 15), picking by ID often selects the telephoto 
+            // or ultrawide lens which cannot focus on close QR codes.
+            // Letting the OS pick "environment" selects the primary wide lens with auto-focus.
+            const cameraConfig = { facingMode: "environment" };
             
             // Optimized config for iOS and Android
             const config = {
-                fps: 30, // Increased FPS for faster detection
+                fps: 10, // 10-15 FPS is optimal. 30 FPS causes battery drain and frame dropping on older phones.
                 qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    // Make scan box responsive and larger for iOS
+                    // Make scan box large enough to easily fit QR code
                     let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                    let qrboxSize = Math.floor(minEdge * 0.75); // 75% of smaller dimension
+                    let qrboxSize = Math.floor(minEdge * 0.85); // 85% of smaller dimension
                     return {
                         width: qrboxSize,
                         height: qrboxSize
                     };
                 },
                 aspectRatio: 1.0,
-                // iOS Safari needs these settings
-                videoConstraints: {
-                    facingMode: "environment",
-                    advanced: [
-                        { focusMode: "continuous" },
-                        { zoom: 1.0 }
-                    ]
-                },
-                // Better scan frequency
-                disableFlip: false,
-                rememberLastUsedCamera: true
+                disableFlip: false
             };
             
             await html5QrCode.start(
-                cameraId,
+                cameraConfig,
                 config,
                 onScanSuccess,
                 onScanError
