@@ -694,7 +694,7 @@ function printQR() {
         <body>
             <div class="card ${borderClass}">
                 <div class="card-header">
-                    <img src="assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                    <img src="${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
                     <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                 </div>
                 <div class="card-qr">
@@ -1194,7 +1194,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 html += `
                     <div class="card ${borderClass}">
                         <div class="card-header">
-                            <img src="assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                            <img src="${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
                             <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                         </div>
                         <div class="card-qr">
