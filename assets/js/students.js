@@ -613,7 +613,7 @@ function printQR() {
                     padding: 3mm;
                     text-align: center;
                     background: white;
-                    height: 85mm;
+                    height: 80mm;
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
@@ -641,7 +641,7 @@ function printQR() {
                     flex-shrink: 0;
                 }
                 .card-header-title {
-                    font-size: 6px;
+                    font-size: 9px;
                     font-weight: bold;
                     color: #374151;
                     line-height: 1.2;
@@ -650,7 +650,7 @@ function printQR() {
                 }
                 .card-qr {
                     width: 100%;
-                    height: 42mm;
+                    height: 40mm;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -669,7 +669,7 @@ function printQR() {
                     width: 100%;
                 }
                 .card-text h3 { 
-                    font-size: 9px; 
+                    font-size: 11px; 
                     margin-bottom: 2px; 
                     font-weight: bold;
                     line-height: 1.2;
@@ -680,7 +680,7 @@ function printQR() {
                     width: 100%;
                 }
                 .card-text p { 
-                    font-size: 6.5px; 
+                    font-size: 8px; 
                     margin: 1px 0; 
                     color: #6B7280;
                     line-height: 1.3;
@@ -692,7 +692,7 @@ function printQR() {
                 .card-text .nisn {
                     font-weight: 600;
                     color: #374151;
-                    font-size: 8px;
+                    font-size: 9px;
                 }
                 @media print {
                     @page { size: portrait; margin: 0; }
@@ -1036,7 +1036,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             page-break-inside: avoid;
             break-inside: avoid;
             background: white;
-            height: 85mm;
+            height: 80mm;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -1066,7 +1066,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             flex-shrink: 0;
         }
         .card-header-title {
-            font-size: 6px;
+            font-size: 9px;
             font-weight: bold;
             color: #374151;
             line-height: 1.2;
@@ -1075,7 +1075,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         }
         .card-qr {
             width: 100%;
-            height: 42mm;
+            height: 40mm;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1094,7 +1094,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             width: 100%;
         }
         .card-text h3 { 
-            font-size: 9px; 
+            font-size: 11px; 
             margin-bottom: 2px; 
             font-weight: bold;
             line-height: 1.2;
@@ -1105,7 +1105,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             width: 100%;
         }
         .card-text p { 
-            font-size: 6.5px; 
+            font-size: 8px; 
             margin: 1px 0; 
             color: #6B7280;
             line-height: 1.3;
@@ -1117,31 +1117,33 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         .card-text .nisn {
             font-weight: 600;
             color: #374151;
-            font-size: 8px;
+            font-size: 9px;
         }
         @media print {
-            html, body {
-                width: 210mm;
-                height: 297mm;
-            }
             body { 
                 margin: 0; 
                 padding: 0; 
+                background: white;
             }
             .page { 
                 margin: 0; 
                 padding: 8mm;
-                min-height: 297mm;
+                break-after: page;
+                page-break-after: always;
+            }
+            .page:last-child {
+                break-after: auto;
+                page-break-after: auto;
             }
             .grid {
                 gap: 5mm;
             }
             .card {
-                height: 85mm;
+                height: 80mm;
                 padding: 3mm;
             }
             .card-qr {
-                height: 42mm;
+                height: 40mm;
             }
         }
     </style>
