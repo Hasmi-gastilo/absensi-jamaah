@@ -588,6 +588,9 @@ function printQR() {
         borderClass = 'border-tkp';
     }
     
+    const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    const logoUrl = baseUrl + '/assets/img/logo-smk.png';
+    
     const doc = printFrame.contentWindow.document;
     doc.open();
     doc.write(`
@@ -606,7 +609,7 @@ function printQR() {
                     background: white;
                 }
                 .card { 
-                    width: 65mm;
+                    width: 62mm;
                     padding: 3mm;
                     text-align: center;
                     background: white;
@@ -614,8 +617,8 @@ function printQR() {
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
-                    border: 6px solid #bbb;
-                    border-radius: 6mm;
+                    border: 8px solid #bbb;
+                    border-radius: 8mm;
                 }
                 .card.border-tkr { border-color: #3B82F6; }
                 .card.border-titl { border-color: #EF4444; }
@@ -624,21 +627,21 @@ function printQR() {
                 
                 .card-header {
                     width: 100%;
-                    padding: 2mm;
+                    padding: 0 0 2mm 0;
                     border-bottom: 2px solid #E5E7EB;
                     margin-bottom: 3mm;
                     display: flex;
                     align-items: center;
                     justify-content: flex-start;
-                    gap: 3mm;
+                    gap: 2mm;
                 }
                 .card-header img {
-                    height: 12mm;
+                    height: 10mm;
                     width: auto;
                     flex-shrink: 0;
                 }
                 .card-header-title {
-                    font-size: 10px;
+                    font-size: 7px;
                     font-weight: bold;
                     color: #374151;
                     line-height: 1.2;
@@ -647,7 +650,7 @@ function printQR() {
                 }
                 .card-qr {
                     width: 100%;
-                    height: 45mm;
+                    height: 42mm;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -662,28 +665,31 @@ function printQR() {
                 }
                 .card-text {
                     flex-shrink: 0;
-                    padding: 1mm 2mm;
+                    padding: 0 1mm;
                 }
                 .card-text h3 { 
-                    font-size: 11px; 
-                    margin-bottom: 3px; 
+                    font-size: 10px; 
+                    margin-bottom: 2px; 
                     font-weight: bold;
                     line-height: 1.2;
                     color: #1F2937;
-                    word-wrap: break-word;
-                    overflow-wrap: break-word;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
                 .card-text p { 
-                    font-size: 9px; 
-                    margin: 2px 0; 
+                    font-size: 7px; 
+                    margin: 1px 0; 
                     color: #6B7280;
                     line-height: 1.3;
-                    word-wrap: break-word;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
                 .card-text .nisn {
                     font-weight: 600;
                     color: #374151;
-                    font-size: 10px;
+                    font-size: 8px;
                 }
                 @media print {
                     @page { size: portrait; margin: 0; }
@@ -694,7 +700,7 @@ function printQR() {
         <body>
             <div class="card ${borderClass}">
                 <div class="card-header">
-                    <img src="${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                    <img src="${logoUrl}" alt="Logo">
                     <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                 </div>
                 <div class="card-qr">
@@ -1032,8 +1038,8 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             flex-direction: column;
             justify-content: flex-start;
             position: relative;
-            border: 6px solid #bbb;
-            border-radius: 6mm;
+            border: 8px solid #bbb;
+            border-radius: 8mm;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
         }
@@ -1043,21 +1049,21 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         .card.border-tkp { border-color: #F59E0B; }
         .card-header {
             width: 100%;
-            padding: 2mm;
+            padding: 0 0 2mm 0;
             border-bottom: 2px solid #E5E7EB;
             margin-bottom: 3mm;
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 3mm;
+            gap: 2mm;
         }
         .card-header img {
-            height: 12mm;
+            height: 10mm;
             width: auto;
             flex-shrink: 0;
         }
         .card-header-title {
-            font-size: 10px;
+            font-size: 7px;
             font-weight: bold;
             color: #374151;
             line-height: 1.2;
@@ -1066,7 +1072,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         }
         .card-qr {
             width: 100%;
-            height: 45mm;
+            height: 42mm;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1081,28 +1087,31 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         }
         .card-text {
             flex-shrink: 0;
-            padding: 1mm 2mm;
+            padding: 0 1mm;
         }
         .card-text h3 { 
-            font-size: 11px; 
-            margin-bottom: 3px; 
+            font-size: 10px; 
+            margin-bottom: 2px; 
             font-weight: bold;
             line-height: 1.2;
             color: #1F2937;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .card-text p { 
-            font-size: 9px; 
-            margin: 2px 0; 
+            font-size: 7px; 
+            margin: 1px 0; 
             color: #6B7280;
             line-height: 1.3;
-            word-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .card-text .nisn {
             font-weight: 600;
             color: #374151;
-            font-size: 10px;
+            font-size: 8px;
         }
         @media print {
             html, body {
@@ -1126,12 +1135,15 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 padding: 3mm;
             }
             .card-qr {
-                height: 43mm;
+                height: 42mm;
             }
         }
     </style>
 </head>
 <body>`;
+
+        const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+        const logoUrl = baseUrl + '/assets/img/logo-smk.png';
 
         // Calculate items per page
         // A4 height: 297mm - 16mm margin = 281mm
@@ -1194,7 +1206,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 html += `
                     <div class="card ${borderClass}">
                         <div class="card-header">
-                            <img src="${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                            <img src="${logoUrl}" alt="Logo">
                             <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                         </div>
                         <div class="card-qr">
