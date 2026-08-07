@@ -610,12 +610,12 @@ function printQR() {
                     padding: 3mm;
                     text-align: center;
                     background: white;
-                    height: 75mm;
+                    height: 85mm;
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
-                    border: 4px solid #bbb;
-                    border-radius: 4mm;
+                    border: 6px solid #bbb;
+                    border-radius: 6mm;
                 }
                 .card.border-tkr { border-color: #3B82F6; }
                 .card.border-titl { border-color: #EF4444; }
@@ -626,28 +626,28 @@ function printQR() {
                     width: 100%;
                     padding: 2mm;
                     border-bottom: 2px solid #E5E7EB;
-                    margin-bottom: 2mm;
+                    margin-bottom: 3mm;
                     display: flex;
                     align-items: center;
                     justify-content: flex-start;
-                    gap: 2mm;
+                    gap: 3mm;
                 }
                 .card-header img {
-                    height: 10mm;
+                    height: 12mm;
                     width: auto;
                     flex-shrink: 0;
                 }
                 .card-header-title {
-                    font-size: 8px;
+                    font-size: 10px;
                     font-weight: bold;
                     color: #374151;
-                    line-height: 1.3;
+                    line-height: 1.2;
                     text-align: left;
                     flex: 1;
                 }
                 .card-qr {
                     width: 100%;
-                    height: 40mm;
+                    height: 45mm;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -665,8 +665,8 @@ function printQR() {
                     padding: 1mm 2mm;
                 }
                 .card-text h3 { 
-                    font-size: 9px; 
-                    margin-bottom: 2px; 
+                    font-size: 11px; 
+                    margin-bottom: 3px; 
                     font-weight: bold;
                     line-height: 1.2;
                     color: #1F2937;
@@ -674,8 +674,8 @@ function printQR() {
                     overflow-wrap: break-word;
                 }
                 .card-text p { 
-                    font-size: 7.5px; 
-                    margin: 1px 0; 
+                    font-size: 9px; 
+                    margin: 2px 0; 
                     color: #6B7280;
                     line-height: 1.3;
                     word-wrap: break-word;
@@ -683,7 +683,7 @@ function printQR() {
                 .card-text .nisn {
                     font-weight: 600;
                     color: #374151;
-                    font-size: 8px;
+                    font-size: 10px;
                 }
                 @media print {
                     @page { size: portrait; margin: 0; }
@@ -694,7 +694,7 @@ function printQR() {
         <body>
             <div class="card ${borderClass}">
                 <div class="card-header">
-                    <img src="../assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                    <img src="assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
                     <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                 </div>
                 <div class="card-qr">
@@ -1018,7 +1018,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         .grid { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            gap: 5mm;
+            gap: 6mm;
             margin: 0;
         }
         .card { 
@@ -1027,13 +1027,13 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             page-break-inside: avoid;
             break-inside: avoid;
             background: white;
-            height: 75mm;
+            height: 85mm;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             position: relative;
-            border: 4px solid #bbb;
-            border-radius: 4mm;
+            border: 6px solid #bbb;
+            border-radius: 6mm;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
         }
@@ -1045,28 +1045,28 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             width: 100%;
             padding: 2mm;
             border-bottom: 2px solid #E5E7EB;
-            margin-bottom: 2mm;
+            margin-bottom: 3mm;
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 2mm;
+            gap: 3mm;
         }
         .card-header img {
-            height: 10mm;
+            height: 12mm;
             width: auto;
             flex-shrink: 0;
         }
         .card-header-title {
-            font-size: 8px;
+            font-size: 10px;
             font-weight: bold;
             color: #374151;
-            line-height: 1.3;
+            line-height: 1.2;
             text-align: left;
             flex: 1;
         }
         .card-qr {
             width: 100%;
-            height: 40mm;
+            height: 45mm;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1084,8 +1084,8 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             padding: 1mm 2mm;
         }
         .card-text h3 { 
-            font-size: 9px; 
-            margin-bottom: 2px; 
+            font-size: 11px; 
+            margin-bottom: 3px; 
             font-weight: bold;
             line-height: 1.2;
             color: #1F2937;
@@ -1093,8 +1093,8 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             overflow-wrap: break-word;
         }
         .card-text p { 
-            font-size: 7.5px; 
-            margin: 1px 0; 
+            font-size: 9px; 
+            margin: 2px 0; 
             color: #6B7280;
             line-height: 1.3;
             word-wrap: break-word;
@@ -1102,7 +1102,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         .card-text .nisn {
             font-weight: 600;
             color: #374151;
-            font-size: 8px;
+            font-size: 10px;
         }
         @media print {
             html, body {
@@ -1119,14 +1119,14 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 min-height: 297mm;
             }
             .grid {
-                gap: 4mm;
+                gap: 5mm;
             }
             .card {
-                height: 73mm;
-                padding: 2.5mm;
+                height: 85mm;
+                padding: 3mm;
             }
             .card-qr {
-                height: 38mm;
+                height: 43mm;
             }
         }
     </style>
@@ -1134,16 +1134,15 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
 <body>`;
 
         // Calculate items per page
-        // Changed to 3 columns × 3 rows = 9 items per page (larger cards)
         // A4 height: 297mm - 16mm margin = 281mm
         // Header: ~20mm
         // Available: ~261mm
-        // Card height: 75mm
-        // Gap: 5mm
-        // Row height: 75mm + 5mm = 80mm
-        // Rows per page: 261mm / 80mm = 3.26 ≈ 3 rows
-        // Items per page: 3 cols x 3 rows = 9 items
-        const itemsPerPage = 9;
+        // Card height: 85mm
+        // Gap: 6mm
+        // Row height: 85mm + 6mm = 91mm
+        // Rows per page: 261mm / 91mm = 2.8 ≈ 2 rows
+        // Items per page: 3 cols x 2 rows = 6 items
+        const itemsPerPage = 6;
         const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
         
         for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
@@ -1195,7 +1194,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
                 html += `
                     <div class="card ${borderClass}">
                         <div class="card-header">
-                            <img src="../assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
+                            <img src="assets/img/logo-smk.png" alt="Logo" onerror="this.style.display='none'">
                             <div class="card-header-title">Barcode Absensi Jamaah<br>SMK Negeri 1 Sangasanga</div>
                         </div>
                         <div class="card-qr">
