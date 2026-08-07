@@ -632,7 +632,7 @@ function printQR() {
                     margin-bottom: 3mm;
                     display: flex;
                     align-items: center;
-                    justify-content: flex-start;
+                    justify-content: center;
                     gap: 2mm;
                 }
                 .card-header img {
@@ -641,11 +641,11 @@ function printQR() {
                     flex-shrink: 0;
                 }
                 .card-header-title {
-                    font-size: 7px;
+                    font-size: 6px;
                     font-weight: bold;
                     color: #374151;
                     line-height: 1.2;
-                    text-align: left;
+                    text-align: center;
                     flex: 1;
                 }
                 .card-qr {
@@ -666,9 +666,10 @@ function printQR() {
                 .card-text {
                     flex-shrink: 0;
                     padding: 0 1mm;
+                    width: 100%;
                 }
                 .card-text h3 { 
-                    font-size: 10px; 
+                    font-size: 9px; 
                     margin-bottom: 2px; 
                     font-weight: bold;
                     line-height: 1.2;
@@ -676,15 +677,17 @@ function printQR() {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    width: 100%;
                 }
                 .card-text p { 
-                    font-size: 7px; 
+                    font-size: 6.5px; 
                     margin: 1px 0; 
                     color: #6B7280;
                     line-height: 1.3;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    width: 100%;
                 }
                 .card-text .nisn {
                     font-weight: 600;
@@ -1054,7 +1057,7 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             margin-bottom: 3mm;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             gap: 2mm;
         }
         .card-header img {
@@ -1063,11 +1066,11 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             flex-shrink: 0;
         }
         .card-header-title {
-            font-size: 7px;
+            font-size: 6px;
             font-weight: bold;
             color: #374151;
             line-height: 1.2;
-            text-align: left;
+            text-align: center;
             flex: 1;
         }
         .card-qr {
@@ -1088,9 +1091,10 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         .card-text {
             flex-shrink: 0;
             padding: 0 1mm;
+            width: 100%;
         }
         .card-text h3 { 
-            font-size: 10px; 
+            font-size: 9px; 
             margin-bottom: 2px; 
             font-weight: bold;
             line-height: 1.2;
@@ -1098,15 +1102,17 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 100%;
         }
         .card-text p { 
-            font-size: 7px; 
+            font-size: 6.5px; 
             margin: 1px 0; 
             color: #6B7280;
             line-height: 1.3;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 100%;
         }
         .card-text .nisn {
             font-weight: 600;
@@ -1153,8 +1159,8 @@ function generatePrintPage(qrCodes, tingkat, jurusan) {
         // Gap: 6mm
         // Row height: 85mm + 6mm = 91mm
         // Rows per page: 261mm / 91mm = 2.8 ≈ 2 rows
-        // Items per page: 3 cols x 2 rows = 6 items
-        const itemsPerPage = 6;
+        // Items per page: 3 cols x 3 rows = 9 items
+        const itemsPerPage = 9;
         const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
         
         for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
